@@ -916,27 +916,31 @@ class mod_presence_external extends external_api {
         $courseid = $DB->get_field('presence', 'course', ['id' => $presenceid]);
         $context = context_course::instance($courseid, MUST_EXIST);
         $contextid = $context->id;
-        $sql = "SELECT u.id, u.firstname, u.lastname, MIN(ue.status) as status, e.courseid
+
+
+        $sql = "SELECT u.id, u.firstname, u.lastname,  MIN(ue.status) as status, MAX(e.courseid)
                   FROM {user} u
              LEFT JOIN {user_enrolments} ue ON u.id = ue.userid
-             LEFT JOIN {enrol} e ON e.id = ue.enrolid
+             LEFT JOIN {enrol} e ON e.id = ue.enrolid AND e.courseid = :courseid1
              LEFT JOIN {presence_bookings} attb ON ue.userid = attb.userid AND attb.sessionid = :sessionid
-             LEFT JOIN {role_assignments} ra ON ra.userid = u.id AND ra.contextid = :contextid AND ra.roleid = :roleid
                  WHERE (e.courseid IS NULL OR e.courseid = :courseid)
                    AND (u.firstname <> '' OR u.lastname <> '')
-                   AND u.id > 1
+                   AND (LOWER(CONCAT(u.firstname, ' ', u.lastname)) LIKE :query1 OR LOWER(u.lastname) LIKE :query2)AND u.id > 1
                    AND attb.id IS NULL
-                   AND (LOWER(CONCAT(u.firstname, ' ', u.lastname)) LIKE :query1 OR LOWER(u.lastname) LIKE :query2)
-              GROUP BY u.id, u.firstname, u.lastname, e.courseid
-              ORDER BY e.courseid ASC, u.firstname ASC, u.lastname ASC, u.id ASC
+                   AND u.id > 1
+                   AND u.deleted = 0
+                   AND u.suspended = 0
+              GROUP BY u.id, u.firstname, u.lastname
+              ORDER BY CONCAT(u.firstname, ' ', u.lastname) ASC, u.id ASC
                  LIMIT 10";
+
         $enrolments = $DB->get_records_sql($sql, [
             'query1' => strtolower($query).'%',
             'query2' => strtolower($query).'%',
+            'courseid1' => $courseid,
             'courseid' => $courseid,
             'sessionid' => $sessionid,
             'contextid' => $contextid,
-            'roleid' => $roleid,
         ]);
 
         $results = [];
@@ -1086,11 +1090,15 @@ class mod_presence_external extends external_api {
                     throw new coding_exception("Error creating new user");
                 }
                 $sql = "SELECT MAX(CASE WHEN idnumber~E'^\\\\d+$' THEN CAST (idnumber AS INTEGER) ELSE 0 END) as num
-                    FROM {user};";
+                    FROM {user}";
                 $res = $DB->get_record_sql($sql);
                 $DB->update_record('user', ['id' => $user['id'], 'idnumber' => intval($res->num) + 1]);
             }
             if ($user['action'] >= 2) {
+                if (!$DB->record_exists('user', array('id'=>$user['id'], 'deleted'=>0))) {
+                    // this comes true if user was deleted while evaluation ran
+                    continue;
+                }
                 if ($plugin->allow_enrol($instance) && has_capability('enrol/'.$plugin->get_name().':enrol', $context)) {
                     $plugin->enrol_user($instance, $user['id'], $studentroleid, $timestart, $timeend, null);
                 } else {

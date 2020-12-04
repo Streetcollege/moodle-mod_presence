@@ -347,17 +347,16 @@ class presence_evaluation_data implements renderable {
      * @param mod_presence_structure $presence
      */
     public function  __construct(mod_presence_structure $presence) {
-                $this->cm = $presence->cm;
+        $this->cm = $presence->cm;
         $this->session = $presence->get_session_info($presence->pageparams->sessionid);
 
         $durationoptions = [];
+        $maxduration = 0;
         foreach ($this->session->durationoptions as $option) {
             $option['selected'] = 0;
+            $maxduration = max($option['value'], $maxduration);
             $durationoptions[$option['value']] = (object)$option;
         }
-
-
-
 
         $this->users = $presence->get_users([
             'page' => $presence->pageparams->page,
@@ -372,9 +371,18 @@ class presence_evaluation_data implements renderable {
                 unset ($this->users[$k]);
                 continue;
             }
-            $userdurationoptions = $durationoptions;
-            $userdurationoptions[$user->duration]->selected = 1;
+            $userdurationoptions = [];
+            foreach($durationoptions as $k => $v) {
+                $userdurationoptions[$k] = clone $v;
+            }
+            if (!isset($user->duration) || !$user->duration) {
+                $user->duration = "0";
+                $userdurationoptions[$maxduration]->selected = 1;
+            } else if (array_key_exists($user->duration, $userdurationoptions)) {
+                $userdurationoptions[$user->duration]->selected = 1;
+            }
             $user->durationoptions =  array_values($userdurationoptions);
+
         }
 
         $this->pageparams = $presence->pageparams;
