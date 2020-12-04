@@ -89,16 +89,30 @@ class calendar
     public function get_room_planner_schedule() {
         global $DB;
         $schedule = $DB->get_records_sql('
-            SELECT ps.id, CAST(TO_TIMESTAMP(ps.sessdate) as DATE) as date, ps.sessdate, ps.duration, ps.description, ps.roomid, c.fullname, c.shortname
+            SELECT ps.id, ps.sessdate, ps.duration, ps.description, ps.roomid, c.fullname, c.shortname
             FROM {presence_sessions} ps
             JOIN {presence} p ON ps.presenceid = p.id
             JOIN {course} c ON p.course = c.id
             WHERE CAST(TO_TIMESTAMP(ps.sessdate) as DATE) >= CURRENT_DATE
-            ORDER BY
-                CAST(TO_TIMESTAMP(ps.sessdate) as DATE),
-                ps.roomid ASC, 
-                ps.sessdate ASC
         ');
+
+        // INFO: CAST(TO_TIMESTAMP(..) AS DATE) returns wrong date(!) .. maybe problem with timezones. User userdate instead.
+        foreach ($schedule as $session) {
+            $session->date = userdate($session->sessdate, '%F');
+        }
+
+        usort($schedule, function($a, $b) {
+            $res = $a->date <=> $b->date;
+            if ($res != 0) {
+                return $res;
+            }
+            $res = $a->roomid <=> $b->roomid;
+            if ($res != 0) {
+                return $res;
+            }
+            return $a->sessdate <=> $b->sessdate;
+
+        });
 
         $roomplan = [];
         $prevroom = null;

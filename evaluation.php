@@ -50,10 +50,12 @@ if (!$pageparams->sessionid && $pageparams->action != mod_presence_sessions_page
 presence_init_page([
     'url' => new moodle_url('/mod/presence/evaluation.php'),
     'tab' => presence_tabs::TAB_EVALUATION,
+    'printheader' => false,
 ]);
 
 switch ($presence->pageparams->action) {
     case mod_presence_sessions_page_params::ACTION_EVALUATE:
+        presence_print_header();
         $evaluationdata = new presence_evaluation_data($presence);
         $usersvalues = array_values($evaluationdata->users);
         $templatecontext = (object)[
@@ -75,6 +77,7 @@ switch ($presence->pageparams->action) {
         redirect($presence->url_evaluation(), get_string('evaluationsfinished', 'presence'), \core\output\notification::NOTIFY_SUCCESS);
         break;
     default:
+        presence_print_header();
         $pageparams->startdate = 0;
         $pageparams->enddate = time();
         $sessiondata = new presence_sessions_data($presence);

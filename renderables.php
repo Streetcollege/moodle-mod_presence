@@ -347,29 +347,36 @@ class presence_evaluation_data implements renderable {
      * @param mod_presence_structure $presence
      */
     public function  __construct(mod_presence_structure $presence) {
+                $this->cm = $presence->cm;
+        $this->session = $presence->get_session_info($presence->pageparams->sessionid);
+
+        $durationoptions = [];
+        foreach ($this->session->durationoptions as $option) {
+            $option['selected'] = 0;
+            $durationoptions[$option['value']] = (object)$option;
+        }
+
+
+
+
         $this->users = $presence->get_users([
             'page' => $presence->pageparams->page,
             'sessionid' => $presence->pageparams->sessionid,
             'evaluation' => 1,
         ]);
         $bookings = 0;
-        foreach ($this->users as $user) {
+        foreach ($this->users as $k => $user) {
             if (intval($user->booked)) {
                 $bookings++;
+            } else {
+                unset ($this->users[$k]);
+                continue;
             }
+            $userdurationoptions = $durationoptions;
+            $userdurationoptions[$user->duration]->selected = 1;
+            $user->durationoptions =  array_values($userdurationoptions);
         }
 
-        if ($bookings > 0) {
-            foreach ($this->users as $k => $user) {
-                if (!$user->booked) {
-                    unset ($this->users[$k]);
-                }
-            }
-        }
-
-
-        $this->cm = $presence->cm;
-        $this->session = $presence->get_session_info($presence->pageparams->sessionid);
         $this->pageparams = $presence->pageparams;
         $this->urlfinish = $presence->url_evaluation([
             'sessionid' => $presence->pageparams->sessionid,

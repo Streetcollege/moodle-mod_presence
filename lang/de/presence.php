@@ -35,7 +35,7 @@ $string['allstudents'] = 'Alle Studenten';
 $string['allfuture'] = 'Zukünftige';
 $string['allpast'] = 'Vergangene';
 $string['allsessions'] = 'Alle Lerneinheiten';
-
+$string['autofillbookings'] = 'Automatische Teilnehmerliste';
 $string['book'] = 'Teilnehmen';
 $string['bookedcalprefix'] = 'Teilnahme: ';
 $string['bookedcaldescription'] = 'Kursteilnahme gebucht für:';
@@ -144,7 +144,7 @@ $string['noroomsdefined'] = 'Keine Räume definiert';
 $string['nosessiondayselected'] = 'Kein Datum ausgewählt';
 $string['nosessionexists'] = 'Dieser Kurs hat keine Lerneinheiten';
 $string['nosessionsselected'] = 'Keine Lerneinheiten ausgewählt';
-$string['nostudents'] = 'Für diesen Kurs gibt es keine Einschreibungen';
+$string['nostudents'] = 'Für diesen Kurs hat sich niemand angemeldet';
 $string['notfound'] = 'Zu diesem Kurs gibt es keine Präsenz-Aktivität!';
 $string['notset'] = 'Nicht eingestellt';
 $string['notentrolled'] = 'Nicht eingeschrieben';
