@@ -917,6 +917,12 @@ class mod_presence_external extends external_api {
         $context = context_course::instance($courseid, MUST_EXIST);
         $contextid = $context->id;
 
+        $querySql = $query;
+        if (preg_match('/[\-0-9]/', $query)) {
+            $querySql = '%'.strtolower($querySql).'%';
+        } else  {
+            $querySql = strtolower($querySql).'%';
+        }
 
         $sql = "SELECT u.id, u.firstname, u.lastname,  MIN(ue.status) as status, MAX(e.courseid)
                   FROM {user} u
@@ -925,7 +931,7 @@ class mod_presence_external extends external_api {
              LEFT JOIN {presence_bookings} attb ON ue.userid = attb.userid AND attb.sessionid = :sessionid
                  WHERE (e.courseid IS NULL OR e.courseid = :courseid)
                    AND (u.firstname <> '' OR u.lastname <> '')
-                   AND (LOWER(CONCAT(u.firstname, ' ', u.lastname)) LIKE :query1 OR LOWER(u.lastname) LIKE :query2)AND u.id > 1
+                   AND (LOWER(CONCAT(u.firstname, ' ', u.lastname)) LIKE :query1 OR LOWER(u.lastname) LIKE :query2) 
                    AND attb.id IS NULL
                    AND u.id > 1
                    AND u.deleted = 0
@@ -935,8 +941,8 @@ class mod_presence_external extends external_api {
                  LIMIT 10";
 
         $enrolments = $DB->get_records_sql($sql, [
-            'query1' => strtolower($query).'%',
-            'query2' => strtolower($query).'%',
+            'query1' => $querySql,
+            'query2' => $querySql,
             'courseid1' => $courseid,
             'courseid' => $courseid,
             'sessionid' => $sessionid,
