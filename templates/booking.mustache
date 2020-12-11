@@ -24,7 +24,6 @@
     <h4>{{#str}}sessionbooktitle, presence{{/str}}</h4>
 </div>
 
-<!--
 {{#sessionsbydate}}
     <h5 class="card-title mt-4">{{date}}</h5>
     {{#sessions}}
@@ -35,29 +34,31 @@
                         <div class="overflow-hidden text-nowrap bold" style="width:100%;">{{timefrom}} - {{timeto}}</div>
                         <div class="overflow-hidden text-nowrap">{{roomname}}</div>
                         <div class="">
-                            {{#pix}}i/users, core, {{/pix}} {{bookings}}
+                            {{#pix}}i/users, core, {{/pix}} <span data-presence-book-session="{{id}}">{{bookedspots}}</span>
                             {{#maxattendants}}
                                 / {{maxattendants}}
                             {{/maxattendants}}
                         </div>
-
                     </div>
-                    <div class="col-lg-7 col-md-5 col-sm-5">{{&description}}</div>
+                    <div class="col-lg-7 col-md-5 col-sm-5">
+                        <span class="bold">{{&description}}</span><br />
+                        <span data-presence-book-names="{{id}}">
+                            {{#attendants}}
+                               {{firstname}} {{lastname}}{{^islast}},{{/islast}}
+                            {{/attendants}}
+                        </span>
+                    </div>
                     <div class="col-lg-3 col-md-4 col-sm-4 my-auto text-right">
-                        {{#urlevaluate}}
-                            <a href="{{&urlevaluate}}">
-                                {{^evaluated}}
-                                    <button class="btn btn-primary align-middle my-auto">
-                                        {{#pix}}i/edit, core, {{/pix}} {{#str}}evaluate, presence{{/str}}
-                                    </button>
-                                {{/evaluated}}
-                                {{#evaluated}}
-                                    <button class="btn btn-secondary align-middle my-auto">
-                                        {{#pix}}i/edit, core, {{/pix}} {{#str}}reevaluate, presence{{/str}}
-                                    </button>
-                                {{/evaluated}}
-                            </a>
-                        {{/urlevaluate}}
+                        <button class="btn btn-secondary align-middle my-auto {{#booked}}hidden{{/booked}}"
+                                data-presence-book-session="{{id}}"
+                                data-presence-book-action="1">
+                            {{#str}}sessionbook, presence{{/str}}
+                        </button>
+                        <button class="btn btn-primary align-middle my-auto {{^booked}}hidden{{/booked}}"
+                        data-presence-book-session="{{id}}"
+                        data-presence-book-action="-1">
+                            {{#str}}sessionunbook, presence{{/str}}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -71,7 +72,3 @@
         </div>
     </div>
 {{/sessionsbydate}}
--->
-
-
-

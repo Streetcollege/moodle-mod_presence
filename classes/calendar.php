@@ -29,18 +29,25 @@ namespace mod_presence;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_presence_structure;
+use moodle_url;
 
 
 class calendar
 {
     private $presence;
+    private $presenceid;
 
     public $rooms;
 
-    public function  __construct(mod_presence_structure $presence = null) {
+    public function  __construct(mod_presence_structure $presence = null, $presenceid = null) {
         global $DB;
 
         $this->presence = $presence;
+        if ($this->presence) {
+            $this->presenceid = $this->presence->id;
+        } else if ($presenceid) {
+            $this->presenceid = $presenceid;
+        }
 
         $this->rooms = [];
         $this->rooms[0] = (object)[
@@ -96,6 +103,7 @@ class calendar
             WHERE CAST(TO_TIMESTAMP(ps.sessdate) as DATE) >= CURRENT_DATE
         ');
 
+
         // INFO: CAST(TO_TIMESTAMP(..) AS DATE) returns wrong date(!) .. maybe problem with timezones. User userdate instead.
         foreach ($schedule as $session) {
             $session->date = userdate($session->sessdate, '%F');
@@ -146,5 +154,23 @@ class calendar
             $prevsession = $session;
         }
         return $roomplan;
+    }
+
+    public function get_session_bookings(int $sessionid) {
+        global $DB;
+        $users = $DB->get_records_sql('
+            SELECT u.id, u.picture, u.firstname, u.lastname, u.email, u.username, u.idnumber, 1 AS booked
+            FROM {user} u
+            LEFT JOIN {presence_bookings} pb ON u.id = pb.userid
+            WHERE pb.sessionid = :sessionid
+            ORDER BY u.firstname, u.lastname
+            ', ['sessionid' => $sessionid]);
+        foreach ($users as $user) {
+            $user->picturebigurl = new moodle_url("/user/pix.php/{$user->id}/f1.jpg", []);
+            $user->picturesmallurl = new moodle_url("/user/pix.php/{$user->id}/f2", []);
+            $user->profileurl = new moodle_url('/mod/presence/userprofile.php', ['id' => $this->presenceid, 'userid' => $user->id]);
+        }
+
+        return $users;
     }
 }

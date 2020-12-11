@@ -362,7 +362,7 @@ class mod_presence_external extends external_api {
      *
      * @return array
      */
-    private static function get_session_structure() {
+    public static function get_session_structure() {
         $session = array('id' => new external_value(PARAM_INT, 'Session id.'),
                          'presenceid' => new external_value(PARAM_INT, 'presence id.'),
                          'groupid' => new external_value(PARAM_INT, 'Group id.'),
@@ -604,6 +604,8 @@ class mod_presence_external extends external_api {
 
         $bookedspots = $DB->count_records('presence_bookings', array('sessionid' => $sessionid));
         $booking = $DB->get_record('presence_bookings', array('sessionid' => $sessionid, 'userid' => $USER->id));
+
+
         $maxattendants = intval($DB->get_field('presence_sessions', 'maxattendants', array('id' => $sessionid)));
         $result = intval(boolval($booking));
 
@@ -617,7 +619,7 @@ class mod_presence_external extends external_api {
             $bookedspots--;
             $result = 0;
         } else if (!$booking && $book >= 0) {
-            if ($maxattendants > 0 && $bookedspots + 1 >= $maxattendants) {
+            if ($maxattendants > 0 && $bookedspots + 1 > $maxattendants) {
                 $errortitle = get_string('sessionfulltitle', 'presence');
                 $errormessage = get_string('sessionfull', 'presence');
                 $errorconfirm = get_string('ok');
@@ -630,10 +632,19 @@ class mod_presence_external extends external_api {
             }
         }
 
+        $presenceid = $DB->get_field('presence_sessions', 'presenceid', ['id' => $sessionid]);
+        $cal = new mod_presence\calendar(null, $presenceid);
+        $bookingsarray = $cal->get_session_bookings($sessionid);
+        $bookings =  [];
+        foreach ($bookingsarray as $user)  {
+            $bookings[] = trim($user->firstname . ' '.$user->lastname);
+        }
+
         return array(
             'sessionid' => $sessionid,
             'bookingstatus' => $result,
             'bookedspots' => $bookedspots,
+            'bookings' => implode(', ', $bookings),
             'errortitle' => $errortitle,
             'errormessage' => $errormessage,
             'errorconfirm' => $errorconfirm
@@ -661,6 +672,7 @@ class mod_presence_external extends external_api {
             'sessionid' => new external_value(PARAM_INT, 'id of the manipulated session'),
             'bookingstatus' => new external_value(PARAM_INT, 'new status of the booking (1: booked, 0: not booked)'),
             'bookedspots' => new external_value(PARAM_INT, 'bookedspots'),
+            'bookings' => new external_value(PARAM_TEXT, 'list of names of bookings'),
             'errortitle' => new external_value(PARAM_TEXT, 'title for error message'),
             'errormessage' => new external_value(PARAM_TEXT, 'text for error message'),
             'errorconfirm' => new external_value(PARAM_TEXT, 'error message confirm button caption')
@@ -924,21 +936,21 @@ class mod_presence_external extends external_api {
             $querySql = strtolower($querySql).'%';
         }
 
-        $sql = "SELECT u.id, u.firstname, u.lastname,  MIN(ue.status) as status, MAX(e.courseid)
+
+        $sql = "SELECT u.id, u.firstname, u.lastname,  CAST(ue.status IS NOT NULL AS INT) AS enrolled
                   FROM {user} u
-             LEFT JOIN {user_enrolments} ue ON u.id = ue.userid
-             LEFT JOIN {enrol} e ON e.id = ue.enrolid AND e.courseid = :courseid1
-             LEFT JOIN {presence_bookings} attb ON ue.userid = attb.userid AND attb.sessionid = :sessionid
-                 WHERE (e.courseid IS NULL OR e.courseid = :courseid)
-                   AND (u.firstname <> '' OR u.lastname <> '')
+             LEFT JOIN {user_enrolments} ue ON u.id = ue.userid AND ue.status = 0 
+                 AND ue.enrolid IN (SELECT id FROM {enrol} WHERE courseid = :courseid1)
+             LEFT JOIN {presence_bookings} pb ON ue.userid = pb.userid AND pb.sessionid = :sessionid
+                 WHERE (u.firstname <> '' OR u.lastname <> '')
                    AND (LOWER(CONCAT(u.firstname, ' ', u.lastname)) LIKE :query1 OR LOWER(u.lastname) LIKE :query2) 
-                   AND attb.id IS NULL
+                   AND pb.id IS NULL
                    AND u.id > 1
                    AND u.deleted = 0
                    AND u.suspended = 0
-              GROUP BY u.id, u.firstname, u.lastname
-              ORDER BY CONCAT(u.firstname, ' ', u.lastname) ASC, u.id ASC
+              ORDER BY enrolled DESC, CONCAT(u.firstname, ' ', u.lastname) ASC, u.id ASC
                  LIMIT 10";
+
 
         $enrolments = $DB->get_records_sql($sql, [
             'query1' => $querySql,
@@ -954,10 +966,10 @@ class mod_presence_external extends external_api {
             $results[] = [
                 'userid' => $enrolment->id,
                 'name' => trim($enrolment->firstname . ' ' . $enrolment->lastname),
-                'tag' => $enrolment->status == "0" ?
+                'tag' => $enrolment->enrolled ?
                     get_string('enrolled', 'presence') : get_string('notentrolled', 'presence'),
-                'action' => $enrolment->status == "0" ? 1 : 2,
-                'actiontext' => $enrolment->status == "0" ?
+                'action' => $enrolment->enrolled ? 1 : 2,
+                'actiontext' => $enrolment->enrolled ?
                     get_string('book', 'presence') : get_string('enrollandbook', 'presence'),
             ];
         }
@@ -1106,7 +1118,7 @@ class mod_presence_external extends external_api {
                     continue;
                 }
                 if ($plugin->allow_enrol($instance) && has_capability('enrol/'.$plugin->get_name().':enrol', $context)) {
-                    $plugin->enrol_user($instance, $user['id'], $studentroleid, $timestart, $timeend, null);
+                    $plugin->enrol_user($instance, $user['id'], $studentroleid, $timestart, $timeend, 0);
                 } else {
                     throw new enrol_ajax_exception('enrolnotpermitted');
                 }
@@ -1114,8 +1126,8 @@ class mod_presence_external extends external_api {
             // book into session
             if ($user['action'] >= 1) {
                 $bookingid = $DB->get_field('presence_bookings', 'id', ['sessionid' => $sessionid, 'userid' => $user['id']]);
-                $caleventid = $DB->get_field('presence_sessions', 'caleventid', ['id' => $sessionid]);
                 if (!$bookingid) {
+                    $caleventid = $DB->get_field('presence_sessions', 'caleventid', ['id' => $sessionid]);
                     $DB->insert_record('presence_bookings', ['sessionid' => $sessionid, 'userid' => $user['id'], 'caleventid' => $caleventid]);
                 }
             }

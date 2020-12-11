@@ -62,11 +62,30 @@ switch ($presence->pageparams->action) {
             'session' => $evaluationdata->session,
             'durationoptions' => $evaluationdata->session->durationoptions,
             'urlfinish' => $evaluationdata->urlfinish,
+            'urlautoadd' => $evaluationdata->urlautoadd,
             'users' => $usersvalues,
             'users?' => count($usersvalues) > 0,
+            'usersrecent' => $evaluationdata->usersrecent,
+            'usersrecentcount' => count($evaluationdata->usersrecent),
         ];
         echo '<input type="hidden" data-module="mod_presence" data-sessionid value="'.$evaluationdata->session->id.'" />';
         echo $OUTPUT->render_from_template('mod_presence/evaluate_session', $templatecontext);
+        break;
+    case mod_presence_sessions_page_params::ACTION_EVALUATE_AUTOADD:
+        $evaluationdata = new presence_evaluation_data($presence);
+        foreach ($evaluationdata->usersrecent as $userid) {
+            $bookingid = $DB->get_field('presence_bookings', 'id', ['sessionid' => $evaluationdata->session->id, 'userid' => $userid]);
+
+            if (!$bookingid) {
+                $caleventid = $DB->get_field('presence_sessions', 'caleventid', ['id' => $evaluationdata->session->id]);
+                $DB->insert_record('presence_bookings', ['sessionid' => $evaluationdata->session->id, 'userid' => $userid, 'caleventid' => $caleventid]);
+            }
+        }
+        redirect($presence->url_evaluation([
+            'sessionid' => $evaluationdata->session->id,
+            'action' => mod_presence_sessions_page_params::ACTION_EVALUATE,
+        ]), get_string('autoaddedattendants', 'presence'), \core\output\notification::NOTIFY_SUCCESS);
+
         break;
     case mod_presence_sessions_page_params::ACTION_EVALUATE_FINISH:
         presence_finish_evaluation($presence, $pageparams->sessionid);

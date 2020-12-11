@@ -62,6 +62,8 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification'], 
                 $(`button[data-presence-book-session=${result.sessionid}][data-presence-book-action=${hide}]`).hide();
                 $(`span[data-presence-book-session=${result.sessionid}]`)
                     .text(result.bookedspots);
+                $(`span[data-presence-book-names=${result.sessionid}]`)
+                    .text(result.bookings);
                 if (result.errormessage) {
                     notification.alert(result.errortitle, result.errormessage, result.errorconfirm);
                 }

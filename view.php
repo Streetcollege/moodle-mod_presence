@@ -64,6 +64,6 @@ $templatecontext = (object)[
 // TODO: updated layout - almost ready
 echo $OUTPUT->render_from_template('mod_presence/booking', $templatecontext);
 
-echo $output->render($userdata);
+// echo $output->render($userdata);
 
 echo $output->footer();

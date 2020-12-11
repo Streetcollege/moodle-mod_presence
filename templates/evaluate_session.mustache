@@ -51,9 +51,9 @@
             <a href="#">
                 <button class="btn btn-primary" data-toggle="modal" data-target="#mod_presence_add_modal">{{#str}}addstudents, presence{{/str}}</button>
             </a>
-<!--            {{^users}}-->
-<!--            <button class="btn btn-secondary" data-toggle="modal" data-target="#mod_presence_add_auto">{{#str}}autofillbookings, presence{{/str}}</button>-->
-<!--            {{/users}}-->
+            {{#usersrecentcount}}
+            <a href="{{&urlautoadd}}"><button class="btn btn-secondary" data-toggle="modal" data-target="#mod_presence_add_auto">{{#str}}autofillbookings, presence{{/str}} ({{usersrecentcount}})</button></a>
+            {{/usersrecentcount}}
         </div>
     </div>
 
@@ -185,6 +185,10 @@
             <div class="card-body p-2 text-center">
                 {{#str}}nostudents, presence{{/str}}
             </div>
+        </div>
+        <hr />
+        <div class="">
+            <input type="button" class="btn btn-secondary" value="{{#str}}back{{/str}}" data-presence-action="back" />
         </div>
     {{/users}}
 </div>

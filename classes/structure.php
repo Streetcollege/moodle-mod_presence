@@ -606,7 +606,72 @@ class mod_presence_structure {
             $user->picturesmallurl = new moodle_url("/user/pix.php/{$user->id}/f2", []);
         }
 
+
         return $users;
+    }
+
+
+    public function get_users_session(int $sessionid) {
+        global $DB;
+
+        $sql = '
+            SELECT u.id, u.picture, u.firstname, u.lastname, u.email, u.username, u.idnumber, 1 AS booked
+            FROM {user} u
+            LEFT JOIN {presence_bookings} pb ON u.id = pb.userid
+            WHERE pb.sessionid = :sessionid
+            ORDER BY u.firstname, u.lastname
+            ';
+
+        $users = $DB->get_records_sql($sql, ['sessionid' => $sessionid]);
+        foreach ($users as $user) {
+            $user->picturebigurl = new moodle_url("/user/pix.php/{$user->id}/f1.jpg", []);
+            $user->picturesmallurl = new moodle_url("/user/pix.php/{$user->id}/f2", []);
+            $user->profileurl = $this->url_userprofile(['userid' => $user->id]);
+        }
+
+        $sessionlogs = $DB->get_records("presence_evaluations", ['sessionid' => $sessionid]);
+        foreach ($sessionlogs as $log) {
+            if (array_key_exists($log->studentid, $users)) {
+                $users[$log->studentid]->duration = $log->duration;
+                $users[$log->studentid]->remarks_course = $log->remarks_course;
+                $users[$log->studentid]->remarks_personality = $log->remarks_personality;
+            }
+        }
+
+        return $users;
+    }
+
+    /**
+     * Get users that attendet any session of this presence in recent times.
+     * Pass $usersBooked to return only users that arent already in $users.
+     * @param null|array $usersbooked
+     * @throws dml_exception
+     */
+    public function get_users_sessions_recent($usersbooked = null) {
+        global $DB;
+
+        $sql = '
+            SELECT pe.studentid
+            FROM {presence_sessions} ps
+            JOIN {presence_evaluations} pe ON pe.sessionid = ps.id
+            WHERE ps.presenceid = :presenceid
+                  AND pe.duration > 0
+            AND ps.SESSDATE >= :fromtime
+            GROUP BY pe.studentid';
+        $result = $DB->get_records_sql($sql, [
+            'presenceid' => $this->id,
+            'fromtime' => time() - 3600 * 24 * 7 * 8,
+        ]);
+        $users = [];
+        foreach ($result as $k => $v) {
+            $users[$v->studentid] = $v->studentid;
+        }
+        if ($usersbooked) {
+            foreach ($usersbooked as $user) {
+                unset($users[$user->id]);
+            }
+        }
+        return array_values($users);
     }
 
     /**

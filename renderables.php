@@ -331,6 +331,8 @@ class presence_sessions_data implements renderable {
 class presence_evaluation_data implements renderable {
     /** @var array  */
     public $users;
+    /** @var array */
+    public $usersrecent;
     /** @var array|null|stdClass  */
     public $pageparams;
     /** @var stdclass  */
@@ -358,11 +360,20 @@ class presence_evaluation_data implements renderable {
             $durationoptions[$option['value']] = (object)$option;
         }
 
-        $this->users = $presence->get_users([
-            'page' => $presence->pageparams->page,
-            'sessionid' => $presence->pageparams->sessionid,
-            'evaluation' => 1,
-        ]);
+//
+        $this->users = $presence->get_users_session($presence->pageparams->sessionid);
+
+        $this->usersrecent = $presence->get_users_sessions_recent($this->users);
+
+        // old method - doesn't read booked+unenrolled users
+//        $this->users = $presence->get_users([
+//            'page' => $presence->pageparams->page,
+//            'sessionid' => $presence->pageparams->sessionid,
+//            'evaluation' => 1,
+//        ]);
+
+
+
         $bookings = 0;
         foreach ($this->users as $k => $user) {
             if (intval($user->booked)) {
@@ -389,6 +400,10 @@ class presence_evaluation_data implements renderable {
         $this->urlfinish = $presence->url_evaluation([
             'sessionid' => $presence->pageparams->sessionid,
             'action' => mod_presence_sessions_page_params::ACTION_EVALUATE_FINISH ,
+        ]);
+        $this->urlautoadd = $presence->url_evaluation([
+            'sessionid' => $presence->pageparams->sessionid,
+            'action' => mod_presence_sessions_page_params::ACTION_EVALUATE_AUTOADD ,
         ]);
         $this->presence = $presence;
     }
@@ -431,42 +446,31 @@ class presence_user_data implements renderable {
 
         $this->pageparams = $presence->pageparams;
 
-        if ($this->pageparams->mode == mod_presence_view_page_params::MODE_THIS_COURSE
-                || $this->pageparams->mode == mod_presence_view_page_params::MODE_THIS_BOOKING) {
+        $this->filtercontrols = new presence_filter_controls($presence);
+        $this->sessionslog = $presence->get_user_filtered_sessions_log_extended($userid);
+        $bookedsessionids = presence_sessionsbooked();
 
-            $this->filtercontrols = new presence_filter_controls($presence);
-            $this->sessionslog = $presence->get_user_filtered_sessions_log_extended($userid);
-
-            $this->sessionsbydate = [];
-            $olddate = null;
-            $dateid = -1;
-            foreach ($this->sessionslog as $session) {
-                $session->timefrom = userdate($session->sessdat, get_string('strftimetime', 'langconfig'));
-                $session->timeto = userdate($session->sessdat + $session->duration, get_string('strftimetime', 'langconfig'));
-                $date = userdate($session->sessdate, get_string('strftimedatefullshort', 'langconfig'));
-
-                if ($date != $olddate) {
-                    $this->sessionsbydate[++$dateid] = array("date" => $date, "sessions" => array());
-                    $olddate = $date;
-                }
-                $this->sessionsbydate[$dateid]["sessions"][] = $session;
+        $this->sessionsbydate = [];
+        $olddate = null;
+        $dateid = -1;
+        foreach ($this->sessionslog as $session) {
+            $session->timefrom = userdate($session->sessdat, get_string('strftimetime', 'langconfig'));
+            $session->timeto = userdate($session->sessdat + $session->duration, get_string('strftimetime', 'langconfig'));
+            $session->attendants = array_values($presence->get_users_session($session->id));
+            if (count($session->attendants)) {
+                $session->attendants[count($session->attendants) - 1]->islast = true;
             }
-
-        } else {
-            die('depreceated:'.__LINE__.'@'.__FILE__);
-            $this->coursespresences = presence_get_user_courses_presences($userid);
-            foreach ($this->coursespresences as $atid => $ca) {
-                // Check to make sure the user can view this cm.
-                $modinfo = get_fast_modinfo($ca->courseid);
-                if (!$modinfo->instances['presence'][$ca->presenceid]->uservisible) {
-                    unset($this->coursespresences[$atid]);
-                    continue;
-                } else {
-                    $this->coursespresences[$atid]->cmid = $modinfo->instances['presence'][$ca->presenceid]->get_course_module_record()->id;
-                }
-                $this->statuses[$ca->presenceid] = presence_get_statuses($ca->presenceid);
+            $date = userdate($session->sessdate, get_string('strftimedatefullshort', 'langconfig'));
+            $session->booked = in_array($session->id, $bookedsessionids);
+            if ($date != $olddate) {
+                $this->sessionsbydate[++$dateid] = array("date" => $date, "sessions" => array());
+                $olddate = $date;
             }
+            $this->sessionsbydate[$dateid]["sessions"][] = $session;
         }
+
+
+
         $this->urlpath = $presence->url_view()->out_omit_querystring();
         $params = $presence->pageparams->get_significant_params();
         $params['id'] = $presence->cm->id;

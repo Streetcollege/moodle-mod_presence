@@ -76,6 +76,11 @@ class mod_presence_sessions_page_params {
      */
     const ACTION_EVALUATE_FINISH_ALL   = 9;
 
+    /**
+     *  Automatically add recent students as attendants.
+     */
+    const ACTION_EVALUATE_AUTOADD   = 10;
+
     /** @var int view mode of taking presence page*/
     public $action;
 
