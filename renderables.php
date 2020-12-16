@@ -454,8 +454,8 @@ class presence_user_data implements renderable {
         $olddate = null;
         $dateid = -1;
         foreach ($this->sessionslog as $session) {
-            $session->timefrom = userdate($session->sessdat, get_string('strftimetime', 'langconfig'));
-            $session->timeto = userdate($session->sessdat + $session->duration, get_string('strftimetime', 'langconfig'));
+            $session->timefrom = userdate($session->sessdate, get_string('strftimetime', 'langconfig'));
+            $session->timeto = userdate($session->sessdate + $session->duration, get_string('strftimetime', 'langconfig'));
             $session->attendants = array_values($presence->get_users_session($session->id));
             if (count($session->attendants)) {
                 $session->attendants[count($session->attendants) - 1]->islast = true;

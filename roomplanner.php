@@ -25,6 +25,7 @@
 require_once(dirname(__FILE__).'/../../config.php');
 require_once(dirname(__FILE__).'/locallib.php');
 require_once(dirname(__FILE__) . '/classes/calendar.php');
+$PAGE->requires->js('/mod/presence/js/roomplanner.js');
 
 $capabilities = array(
     'mod/presence:view',

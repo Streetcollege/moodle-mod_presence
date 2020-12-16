@@ -398,6 +398,7 @@ class mod_presence_structure {
      */
     public function update_session_from_form_data($formdata, $sessionid) {
         global $DB;
+        $cal = new mod_presence\calendar($this);
 
         if (!$sess = $DB->get_record('presence_sessions', array('id' => $sessionid) )) {
             print_error('No such session in this course');
@@ -405,39 +406,52 @@ class mod_presence_structure {
 
         $sesstarttime = $formdata->sestime['starthour'] * HOURSECS + $formdata->sestime['startminute'] * MINSECS;
         $sesendtime = $formdata->sestime['endhour'] * HOURSECS + $formdata->sestime['endminute'] * MINSECS;
-        $sess->sessdate = $formdata->sessiondate + $sesstarttime;
-        $sess->duration = $sesendtime - $sesstarttime;
-        $sess->description = $formdata->sdescription;
-        $sess->calendarevent = 1;
-        $sess->caleventid = intval($sess->caleventid);
-        $sess->roomid = $formdata->roomid;
-        $sess->maxattendants = $formdata->maxattendants;
+        $duration = $sesendtime - $sesstarttime;
+
+        $date = $cal->remove_time_from_timestamp($sess->sessdate);
+
+//         $sess->sessdate = $formdata->sessiondate + $sesstarttime;
+
+        $datetime = $date + $sesstarttime;
+
         if ($formdata->roomid) {
             $room = $DB->get_record('presence_rooms', ['id' => $formdata->roomid]);
-            $sess->location   = $room->name;
         } else {
-            $sess->location = '';
+            $room = (object)['name' => '', 'id' => $formdata->roomid];
         }
 
-        $sess->timemodified = time();
-        $DB->update_record('presence_sessions', $sess);
-
-        if (empty($sess->caleventid)) {
-             // This shouldn't really happen, but just in case to prevent fatal error.
-            presence_create_calendar_event($sess);
+        if (isset($formdata->addmultiply) and $formdata->addmultiply) {
+            $sessions = $cal->get_series_dates($sess->id, $sess->sessdate);
         } else {
-            presence_update_calendar_event($sess);
+            $sessions = [$sess, ];
         }
 
-        $info = construct_session_full_date_time($sess->sessdate, $sess->duration);
-        $event = \mod_presence\event\session_updated::create(array(
-            'objectid' => $this->id,
-            'context' => $this->context,
-            'other' => array('info' => $info, 'sessionid' => $sessionid,
-                'action' => mod_presence_sessions_page_params::ACTION_UPDATE)));
-        $event->add_record_snapshot('course_modules', $this->cm);
-        $event->add_record_snapshot('presence_sessions', $sess);
-        $event->trigger();
+        foreach ($sessions as $session) {
+            $session->sessdate = $cal->change_timestamp_time($session->sessdate, $sesstarttime);
+            $session->duration = $duration;
+            $session->description = $formdata->sdescription;
+            $session->calendarevent = 1;
+            $session->roomid = $room->id;
+            $session->maxattendants = $formdata->maxattendants;
+            $session->location   = $room->name;
+            $session->timemodified = time();
+            $DB->update_record('presence_sessions', $session);
+            if (empty($session->caleventid)) {
+                throw new coding_exception("caleventid of sessions shouldn't be empty!");
+            } else {
+                presence_update_calendar_event($session);
+            }
+            $info = construct_session_full_date_time($session->sessdate, $session->duration);
+            $event = \mod_presence\event\session_updated::create(array(
+                'objectid' => $this->id,
+                'context' => $this->context,
+                'other' => array('info' => $info, 'sessionid' => $session->id,
+                    'action' => mod_presence_sessions_page_params::ACTION_UPDATE)));
+            $event->add_record_snapshot('course_modules', $this->cm);
+            $event->add_record_snapshot('presence_sessions', $session);
+            $event->trigger();
+        }
+
     }
 
 

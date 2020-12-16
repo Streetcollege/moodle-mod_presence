@@ -94,62 +94,49 @@ switch ($presence->pageparams->action) {
         $currenttab = presence_tabs::TAB_UPDATE;
         break;
     case mod_presence_sessions_page_params::ACTION_DELETE:
+        $PAGE->requires->js('/mod/presence/js/sessions_delete.js');
+        $cal = new \mod_presence\calendar($presence);
 
         $sessionid = required_param('sessionid', PARAM_INT);
-        $confirm   = optional_param('confirm', null, PARAM_INT);
+        $multiple = optional_param('multiple', 0, PARAM_INT);
+        $confirm  = optional_param('confirm', null, PARAM_INT);
 
-        if (isset($confirm) && confirm_sesskey()) {
-            $presence->delete_sessions(array($sessionid));
+        $session = $DB->get_record('presence_sessions', ['id' => $sessionid]);
+        if (!$session) {
             redirect($presence->url_manage(), get_string('sessiondeleted', 'presence'));
         }
+
+
+        if (isset($confirm) && confirm_sesskey()) {
+            if ($multiple) {
+                $sessions = $cal->get_series_dates($sessionid);
+                $sessionids = [];
+                foreach ($sessions as $session) {
+                    $sessionids[] = $session->id;
+                }
+            } else {
+                $sessionids = [$sessionid, ];
+            }
+            $presence->delete_sessions($sessionids);
+            redirect($presence->url_manage(), get_string('sessionsdeleted', 'presence'));
+        }
         presence_print_header();
-
         $sessinfo = $presence->get_session_info($sessionid);
-
-        $message = get_string('deletecheckfull', 'presence', get_string('session', 'presence'));
-        $message .= str_repeat(html_writer::empty_tag('br'), 2);
-        $message .= userdate($sessinfo->sessdate, get_string('strftimedatetime', 'langconfig'));
-        $message .= html_writer::empty_tag('br');
-        $message .= $sessinfo->description;
+        $sessions = $cal->get_series_dates($sessinfo->id);
+        $sessions[0]->first = 1;
 
         $params = array('action' => $presence->pageparams->action, 'sessionid' => $sessionid, 'confirm' => 1, 'sesskey' => sesskey());
 
-        echo $OUTPUT->confirm($message, $presence->url_sessions($params), $presence->url_manage());
-        echo $OUTPUT->footer();
-        exit;
-    case mod_presence_sessions_page_params::ACTION_DELETE_SELECTED:
-        presence_print_header();
-        $confirm    = optional_param('confirm', null, PARAM_INT);
-        $message = get_string('deletecheckfull', 'presence', get_string('sessions', 'presence'));
+        $templatecontext = (object)[
+            'cmid' => $presence->cmid,
+            'sesskey' => $USER->sesskey,
+            'sessionid' => $sessionid,
+            'sessions' => $sessions,
+            'multiple' => count($sessions) > 1,
+            'urlmanage' => $presence->url_manage(),
+        ];
+        echo $OUTPUT->render_from_template('mod_presence/sessions_delete', $templatecontext);
 
-        if (isset($confirm) && confirm_sesskey()) {
-            $sessionsids = required_param('sessionsids', PARAM_ALPHANUMEXT);
-            $sessionsids = explode('_', $sessionsids);
-            if ($presence->pageparams->action == mod_presence_sessions_page_params::ACTION_DELETE_SELECTED) {
-                $presence->delete_sessions($sessionsids);
-                presence_update_users_grade($presence);
-                redirect($presence->url_manage(), get_string('sessiondeleted', 'presence'));
-            }
-        }
-        $sessid = optional_param_array('sessid', '', PARAM_SEQUENCE);
-        if (empty($sessid)) {
-            print_error('nosessionsselected', 'presence', $presence->url_manage());
-        }
-        $sessionsinfo = $presence->get_sessions_info($sessid);
-
-        $message .= html_writer::empty_tag('br');
-        foreach ($sessionsinfo as $sessinfo) {
-            $message .= html_writer::empty_tag('br');
-            $message .= userdate($sessinfo->sessdate, get_string('strftimedmyhm', 'presence'));
-            $message .= html_writer::empty_tag('br');
-            $message .= $sessinfo->description;
-        }
-
-        $sessionsids = implode('_', $sessid);
-        $params = array('action' => $presence->pageparams->action, 'sessionsids' => $sessionsids,
-                        'confirm' => 1, 'sesskey' => sesskey());
-
-        echo $OUTPUT->confirm($message, $presence->url_sessions($params), $presence->url_manage());
         echo $OUTPUT->footer();
         exit;
     default:

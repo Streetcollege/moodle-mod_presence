@@ -68,6 +68,41 @@ class calendar
     }
 
     /**
+     * Get dates from this and the following dates of this calgroup starting from given session
+     * @param int $sessionid
+     * @param int $newfrom set a new starting unixtime for given session and recalc following session dates
+     * @return array
+     */
+    public function get_series_dates(int $sessionid, int $newfrom = null) {
+        global $DB;
+        $session = $DB->get_record('presence_sessions', ['id' => $sessionid]);
+        if (!$session) {
+            throw new \coding_exception("session not found");
+        }
+        $dates = $DB->get_records_sql('
+            SELECT * FROM {presence_sessions}
+            WHERE calgroup = :calgroup 
+            AND (sessdate >= :sessdate OR id = :sessid)
+            ORDER BY sessdate ASC
+            ', [
+            'sessid' => $session->id,
+            'calgroup' => $session->calgroup,
+            'sessdate' => $session->sessdate,
+        ]);
+        foreach ($dates as $k => $date) {
+            $date->sessdatestring = userdate($date->sessdate, get_string('strftimedaydatetime', 'langconfig'));
+        }
+        $dates = array_values($dates);
+        if ($newfrom) {
+            $timeoffset = $newfrom - strtotime(date('Y-m-d', $newfrom));
+            foreach ($dates as $k => $date) {
+                $dates[$k]->sessdate =  strtotime(date('Y-m-d', $date->sessdate)) + $timeoffset;
+            }
+        }
+        return $dates;
+    }
+
+    /**
      * Calc dates of a repeated event
      * @param int $from unix timestamp <= first event
      * @param int $to unix timestamp >= last event
@@ -75,7 +110,7 @@ class calendar
      * @param int $period number of weeks to next event
      * @return array list of unix timestamps of events
      */
-    public function get_series_dates(int $from, int $to, array $days, int $period) : array {
+    public function create_series_dates(int $from, int $to, array $days, int $period) : array {
         $dates = [];
         $periodcount = 0;
         for ($t = $from; $t < $to; $t += 3600 * 24) {
@@ -154,6 +189,25 @@ class calendar
             $prevsession = $session;
         }
         return $roomplan;
+    }
+
+    /**
+     * Return timestamp of the same date but with time 0:00
+     * @param int $timestamp
+     * @return int
+     */
+    public function remove_time_from_timestamp(int $timestamp) {
+        return strtotime(date('Y-m-d', $timestamp));
+    }
+
+    /**
+     * Return a timestamp with the same date but a different time
+     * @param int $timestamp
+     * @param int $time
+     * @return int
+     */
+    public function change_timestamp_time(int $timestamp, int $time) {
+        return $this->remove_time_from_timestamp($timestamp) + $time;
     }
 
     public function get_session_bookings(int $sessionid) {

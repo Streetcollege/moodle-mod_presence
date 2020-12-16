@@ -1182,23 +1182,47 @@ class mod_presence_external extends external_api {
         else if ($duration == 0) return ['result' => ''];
 
         $cal = new mod_presence\calendar();
-        if ($repeat) {
-            $dates = $cal->get_series_dates($from, $repeatuntil, explode(',', $repeatdays), $repeatperiod);
+        if ($sessionid > 0 && $repeat) {
+            $calgroup = intval($DB->get_field('presence_sessions', 'calgroup', ['id' => $sessionid]));
+            if ($calgroup > 0) {
+                $sessions = $cal->get_series_dates($sessionid, $from);
+                $dates = [];
+                foreach($sessions as $session) {
+                    $dates[] = $session->sessdate;
+                }
+            } else {
+                $calgroup = -1;
+                $dates = [$from, ];
+            }
         } else {
-            $dates = [$from, ];
+            $calgroup = -1;
+            if ($repeat) {
+                $dates = $cal->create_series_dates($from, $repeatuntil, explode(',', $repeatdays), $repeatperiod);
+            } else {
+                $dates = [$from, ];
+            }
         }
-
         $html = '';
+
+
 
         foreach ($dates as $date) {
             if($roomid > 0) {
                 $collisions = $DB->get_records_sql("
-            SELECT ps.id, ps.sessdate, ps.duration, c.fullname
-            FROM {presence_sessions} ps
-            JOIN {presence} p ON p.id = ps.presenceid
-            JOIN {course} c ON c.id = p.course
-            WHERE roomid=".$roomid." 
-            AND  (ps.sessdate < ".($date + $duration)." AND ps.sessdate + ps.duration > ".$date.")");
+                    SELECT ps.id, ps.sessdate, ps.duration, ps.calgroup, c.fullname
+                    FROM {presence_sessions} ps
+                    JOIN {presence} p ON p.id = ps.presenceid
+                    JOIN {course} c ON c.id = p.course
+                    WHERE roomid=:roomid 
+                    AND  (ps.sessdate < :datefrom AND ps.sessdate + ps.duration > :dateto)
+                    AND ps.calgroup <> :calgroup
+                    AND ps.id <> :sessid",[
+                    'sessid' => $sessionid,
+                    'roomid' => $roomid,
+                    'datefrom' => $date + $duration,
+                    'dateto' => $date,
+                    'calgroup' => $calgroup,
+                ]);
 
                 if (count($collisions)) {
                     $html .= '<div class="alert alert-danger" role="alert">'

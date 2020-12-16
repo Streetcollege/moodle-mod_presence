@@ -1,0 +1,78 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_presence/rooms
+
+
+
+}}
+<div role="alertdialog"
+     class="box py-3 generalbox modal modal-dialog modal-in-page show">
+    <div class="box py-3 modal-content">
+        <form method="post" action="http://moodle.local/mod/presence/sessions.php" >
+            <div id="modal-header" class="box py-3 modal-header px-3"><h4>{{#str}}deletesessionstitle, presence{{/str}}</h4></div>
+            <div role="alert" data-aria-autofocus="true" id="presence_delete_sessions_dialog" class="box py-3 modal-body hidden">
+                {{#multiple}}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="multiple" id="presence_delete_multiple_0" value="0"
+                               checked>
+                        <label class="form-check-label" for="exampleRadios1">
+                            {{#str}}deleteonlythis, presence{{/str}}
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="multiple" id="presence_delete_multiple_1" value="1">
+                        <label class="form-check-label" for="exampleRadios2">
+                            {{#str}}deletemultiple, presence{{/str}}
+                        </label>
+                    </div>
+                {{/multiple}}
+                <p>
+                {{#sessions}}
+                    <div class="alert alert-primary {{^first}}hidden{{/first}}" {{^first}}data-presence-sessions-multiple="1"{{/first}} role="alert">
+                        {{sessdatestring}}
+                        {{#description}}<br />{{description}}{{/description}}
+                    </div>
+                {{/sessions}}
+                </p>
+            </div>
+
+            <div id="modal-footer" class="box py-3 modal-footer">
+                <input type="hidden" name="id" value="{{cmid}}">
+                <input type="hidden" name="action" value="3">
+                <input type="hidden" name="sessionid" value="{{sessionid}}">
+                <input type="hidden" name="confirm" value="1">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <div class="buttons">
+                    <div class="singlebutton">
+                        <button type="submit" class="btn btn-primary" title="">
+                            {{#str}}confirm{{/str}}
+                        </button>
+                    </div>
+                    <div class="singlebutton">
+                        <a href="{{urlmanage}}">
+                        <button type="button" class="btn btn-secondary" title="">
+                            {{#str}}cancel{{/str}}
+                        </button>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>

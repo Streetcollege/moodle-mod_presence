@@ -70,6 +70,7 @@ class updatesession extends \moodleform {
 
         $data = array(
             'sessiondate' => $sess->sessdate,
+            'sessiondatestring' => userdate($sess->sessdate, get_string('strftimedaydate', 'langconfig')),
             'sestime' => array('starthour' => $starthour, 'startminute' => $startminute,
             'endhour' => $endhour, 'endminute' => $endminute),
             'sdescription' => $sess->description,
@@ -82,15 +83,39 @@ class updatesession extends \moodleform {
 
 
         // $olddate = construct_session_full_date_time($sess->sessdate, $sess->duration);
-        // $mform->addElement('static', 'olddate', get_string('date', 'presence'), $olddate);
+         $mform->addElement('static', 'sessiondatestring', get_string('date', 'presence'));
 
-        presence_form_sessiondate_selector($mform, false, $sess);
+        $mform->addElement('html', '<data data-module="mod_presence" data-presence-sessionid="'.$sess->id.'" />');
+        $mform->addElement('html', '<div class="hidden" data>');
+        $mform->addElement('date_selector', 'sessiondate', get_string('sessiondate', 'presence'));
+        $mform->addElement('html', '</div>');
+        // For multiple sessions.
+        $mform->addElement('checkbox', 'addmultiply', '', get_string('updatefollowing', 'presence'));
+
+        for ($i = 0; $i <= 23; $i++) {
+            $hours[$i] = sprintf("%02d", $i);
+        }
+        for ($i = 0; $i < 60; $i += 5) {
+            $minutes[$i] = sprintf("%02d", $i);
+        }
+
+        $sesendtime = array();
+        $sesendtime[] =& $mform->createElement('static', 'from', '', get_string('from', 'presence'));
+        $sesendtime[] =& $mform->createElement('select', 'starthour', get_string('hour', 'form'), $hours, false, true);
+        $sesendtime[] =& $mform->createElement('select', 'startminute', get_string('minute', 'form'), $minutes, false, true);
+        $sesendtime[] =& $mform->createElement('static', 'to', '', get_string('to', 'presence'));
+        $sesendtime[] =& $mform->createElement('select', 'endhour', get_string('hour', 'form'), $hours, false, true);
+        $sesendtime[] =& $mform->createElement('select', 'endminute', get_string('minute', 'form'), $minutes, false, true);
+
+        $mform->addGroup($sesendtime, 'sestime', get_string('time', 'presence'), array(' '), true);
 
         $mform->addElement('textarea', 'sdescription', get_string('description', 'presence'),
                            array('rows' => 2, 'columns' => 100), $defopts);
         $mform->setType('sdescription', PARAM_RAW);
 
         presence_form_session_room($mform, $presence, $sess);
+
+        $mform->addElement('html', '<div id="presence_collisions"></div>');
 
         $mform->setDefaults($data);
         $this->add_action_buttons(true);

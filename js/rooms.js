@@ -76,11 +76,13 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification'], 
 
         function checkDoubleBookings() {
 
-
-            console.log('check double bookings');
-
             var sessionid = $(this).attr('data-presence-book-session');
-            if (!sessionid) sessionid = 0;
+            if (!sessionid) {
+                sessionid = $('data[data-module=mod_presence][data-presence-sessionid]').attr('data-presence-sessionid');
+            }
+            if (!sessionid) {
+                sessionid = 0;
+            }
 
             var roomid = Number($('#id_roomid').val());
 

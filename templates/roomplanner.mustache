@@ -20,47 +20,97 @@
 
 
 }}
+<style type="text/css">
+    table.dragToScroll {
+        position: relative;
+        width: 100%;
+
+        overflow: hidden;
+        border-collapse: collapse;
+        user-select: none;
+        cursor: grab;
+    }
+
+
+    /*thead*/
+    table.dragToScroll thead {
+        position: relative;
+        display: block; /*seperates the header from the body allowing it to be positioned*/
+        width:  700px;
+        overflow: visible;
+    }
+
+
+    /*tbody*/
+    table.dragToScroll tbody  {
+        position: relative;
+        display: block; /*seperates the tbody from the header*/
+        width:  700px;
+        height: 500px;
+        overflow: scroll;
+    }
+
+
+
+    table.dragToScroll tbody tr td:nth-child(1) {  /*the first cell in each tr*/
+        position: relative;
+        display: block; /*seperates the first column from the tbody*/
+        height: 40px;
+        z-index: 1;
+    }
+
+    table.dragToScroll thead th,
+    table.dragToScroll thead td,
+    table.dragToScroll tbody th,
+    table.dragToScroll tbody td {
+        overflow: hidden;
+        max-width: 200px;
+        min-width: 200px;
+        width: 200px;
+    }
+
+</style>
 <div class="fullwidth mt-4">
     <h4>{{#str}}roomplanner, presence{{/str}}</h4>
     <div class="mt-3 clearfix">
         <div class="float-left mr-2">{{&curdatecontrols}}</div>
-<!--        <div class="float-left mr-2">
-            <a href="{{&addsessionurl}}"><button class="btn btn-primary">{{#str}}addsession, presence{{/str}}</button></a>
-        </div>-->
         <div class="float-left">{{&pagingcontrols}}</div>
     </div>
 </div>
-
 {{#hasrooms}}
-<div style="overflow-x:auto">
-    <!-- https://bootstrap-table.com/docs/extensions/fixed-columns/ //-->
-    <table class="table table-striped table-bordered">
-        <thead>
-        <tr>
-            <th scope="col">{{#str}}date{{/str}}</th>
-            {{#roomslist}}
-            <th style="min-width:300px; width:300px" scope="col">{{name}}</th>
-            {{/roomslist}}
+<div id="presenceRoomPlannerContainer" style="width:100%;overflow:hidden;">
+<table id="presenceRoomPlannerScrollable" class="table dragToScroll">
+    <thead>
+    <tr>
+        {{#roomslist}}
+            <th class="bg-light">{{name}}</th>
+        {{/roomslist}}
+    </tr>
+    </thead>
+    <tbody  class="border">
+    {{#roomplan}}
+        <tr style="border:0;">
+            <td class="bold" style="border:0">{{date}}</td>
         </tr>
-        </thead>
-        <tbody>
-        {{#roomplan}}
-            <tr>
-                <th scope="col" style="width:100px">{{date}}</th>
-                {{#rooms}}
-                <td>
+        <tr style="border-top:0; border-left:0; border-right:0" class="border-bottom bg-light">
+            {{#rooms}}
+                <td class="border-left">
                     {{#schedule}}
                         <div role="alert" class="alert alert-primary {{#collision}}alert-danger {{/collision}} mb-2 p-1">
                             <b>{{from}} - {{to}}</b> {{coursename}} {{description}}
                         </div>
                     {{/schedule}}
+                    {{^schedule}}
+
+                    {{/schedule}}
                 </td>
-                {{/rooms}}
-            </tr>
-        {{/roomplan}}
-        </tbody>
-    </table>
-</div>
+            {{/rooms}}
+        </tr>
+    {{/roomplan}}
+    </tbody>
+</table>
+
+    </div>
 {{/hasrooms}}
 {{^hasrooms}}
 <div class="card bg-light p-2 mt-4 shadow-sm">
