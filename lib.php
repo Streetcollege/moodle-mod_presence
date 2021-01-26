@@ -93,8 +93,6 @@ function presence_update_instance($presence) {
         return false;
     }
 
-    presence_grade_item_update($presence);
-
     return true;
 }
 
@@ -280,46 +278,46 @@ function presence_update_grades($presence, $userid=0, $nullifnone=true) {
  * @return int 0 if ok, error code otherwise
  */
 function presence_grade_item_update($presence, $grades=null) {
-    global $CFG, $DB;
-
-    require_once('locallib.php');
-
-    if (!function_exists('grade_update')) { // Workaround for buggy PHP versions.
-        require_once($CFG->libdir.'/gradelib.php');
-    }
-
-    if (!isset($presence->courseid)) {
-        $presence->courseid = $presence->course;
-    }
-    if (!$DB->get_record('course', array('id' => $presence->course))) {
-        error("Course is misconfigured");
-    }
-
-    if (!empty($presence->cmidnumber)) {
-        $params = array('itemname' => $presence->name, 'idnumber' => $presence->cmidnumber);
-    } else {
-        // MDL-14303.
-        $params = array('itemname' => $presence->name);
-    }
-
-    if ($presence->grade > 0) {
-        $params['gradetype'] = GRADE_TYPE_VALUE;
-        $params['grademax']  = $presence->grade;
-        $params['grademin']  = 0;
-    } else if ($presence->grade < 0) {
-        $params['gradetype'] = GRADE_TYPE_SCALE;
-        $params['scaleid']   = -$presence->grade;
-
-    } else {
-        $params['gradetype'] = GRADE_TYPE_NONE;
-    }
-
-    if ($grades === 'reset') {
-        $params['reset'] = true;
-        $grades = null;
-    }
-
-    return grade_update('mod/presence', $presence->courseid, 'mod', 'presence', $presence->id, 0, $grades, $params);
+//    global $CFG, $DB;
+//
+//    require_once('locallib.php');
+//
+//    if (!function_exists('grade_update')) { // Workaround for buggy PHP versions.
+//        require_once($CFG->libdir.'/gradelib.php');
+//    }
+//
+//    if (!isset($presence->courseid)) {
+//        $presence->courseid = $presence->course;
+//    }
+//    if (!$DB->get_record('course', array('id' => $presence->course))) {
+//        error("Course is misconfigured");
+//    }
+//
+//    if (!empty($presence->cmidnumber)) {
+//        $params = array('itemname' => $presence->name, 'idnumber' => $presence->cmidnumber);
+//    } else {
+//        // MDL-14303.
+//        $params = array('itemname' => $presence->name);
+//    }
+//
+//    if ($presence->grade > 0) {
+//        $params['gradetype'] = GRADE_TYPE_VALUE;
+//        $params['grademax']  = $presence->grade;
+//        $params['grademin']  = 0;
+//    } else if ($presence->grade < 0) {
+//        $params['gradetype'] = GRADE_TYPE_SCALE;
+//        $params['scaleid']   = -$presence->grade;
+//
+//    } else {
+//        $params['gradetype'] = GRADE_TYPE_NONE;
+//    }
+//
+//    if ($grades === 'reset') {
+//        $params['reset'] = true;
+//        $grades = null;
+//    }
+//
+//    return grade_update('mod/presence', $presence->courseid, 'mod', 'presence', $presence->id, 0, $grades, $params);
 }
 
 /**

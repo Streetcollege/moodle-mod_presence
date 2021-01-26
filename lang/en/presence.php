@@ -232,6 +232,7 @@ $string['presence:changepresences'] = 'Changing presences';
 $string['presence:changepreferences'] = 'Changing Preferences';
 $string['presence:export'] = 'Export Reports';
 $string['presence:managepresences'] = 'Manage presences';
+$string['presence:managerooms'] = 'Manage rooms';
 $string['presence:managetemporaryusers'] = 'Manage temporary users';
 $string['presence:takepresences'] = 'Taking presences';
 $string['presence:view'] = 'Viewing presences';

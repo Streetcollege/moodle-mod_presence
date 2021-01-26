@@ -168,6 +168,7 @@ $string['presence:canbelisted'] = 'Wird gelistet';
 $string['presence:changepresences'] = 'Modifiziere Präsenz-Atkvität';
 $string['presence:changepreferences'] = 'Einstellungen bearbeiten';
 $string['presence:managepresences'] = 'Bearbeite Präsenzen';
+$string['presence:managerooms'] = 'Manage rooms';
 $string['presence:takepresences'] = 'Anwesenheiten erfassen';
 $string['presence:view'] = 'Anwesenheiten anzeigen';
 $string['presenceforthecourse'] = 'Präsenz';

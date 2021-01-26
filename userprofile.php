@@ -28,11 +28,11 @@ require_once(dirname(__FILE__).'/classes/tools.php');
 $PAGE->requires->js('/mod/presence/js/presence.js');
 $PAGE->requires->js('/mod/presence/js/userprofile.js');
 
-$capabilities = array(
+$capabilities = [
     'mod/presence:managepresences',
     'mod/presence:takepresences',
-    'mod/presence:changepresences'
-);
+    'mod/presence:changepresences',
+];
 
 $pageparams = new mod_presence_manage_page_params();
 $id                         = required_param('id', PARAM_INT);
