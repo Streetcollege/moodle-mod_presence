@@ -79,6 +79,10 @@ class calendar
         if (!$session) {
             throw new \coding_exception("session not found");
         }
+        if ($session->calgroup == 0) {
+            $session->sessdatestring = userdate($session->sessdate, get_string('strftimedaydatetime', 'langconfig'));
+            return [0 => $session];
+        }
         $dates = $DB->get_records_sql('
             SELECT * FROM {presence_sessions}
             WHERE calgroup = :calgroup 

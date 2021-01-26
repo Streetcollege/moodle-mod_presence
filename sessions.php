@@ -133,7 +133,8 @@ switch ($presence->pageparams->action) {
             'sessionid' => $sessionid,
             'sessions' => $sessions,
             'multiple' => count($sessions) > 1,
-            'urlmanage' => $presence->url_manage(),
+            'urlmanage' => $presence->url_manage()->out_as_local_url(),
+            'urlsessions' => $presence->url_sessions()->out_as_local_url(),
         ];
         echo $OUTPUT->render_from_template('mod_presence/sessions_delete', $templatecontext);
 

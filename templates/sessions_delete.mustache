@@ -23,7 +23,7 @@
 <div role="alertdialog"
      class="box py-3 generalbox modal modal-dialog modal-in-page show">
     <div class="box py-3 modal-content">
-        <form method="post" action="http://moodle.local/mod/presence/sessions.php" >
+        <form method="post" action="{{urlsessions}}" >
             <div id="modal-header" class="box py-3 modal-header px-3"><h4>{{#str}}deletesessionstitle, presence{{/str}}</h4></div>
             <div role="alert" data-aria-autofocus="true" id="presence_delete_sessions_dialog" class="box py-3 modal-body hidden">
                 {{#multiple}}
