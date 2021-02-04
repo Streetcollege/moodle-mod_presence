@@ -49,7 +49,7 @@
                         </span>
                     </div>
                     <div class="col-lg-3 col-md-4 col-sm-4 my-auto text-right">
-                        <button class="btn btn-secondary align-middle my-auto {{#booked}}hidden{{/booked}}"
+                        <button class="btn btn-secondary align-middle my-auto {{^bookable}}hidden{{/bookable}}"
                                 data-presence-book-session="{{id}}"
                                 data-presence-book-action="1">
                             {{#str}}sessionbook, presence{{/str}}

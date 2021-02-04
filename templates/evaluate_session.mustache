@@ -173,13 +173,11 @@
             </div>
         </div>
     {{/users}}
-    {{#users?}}
-        <hr />
-        <div class="">
-            <input type="button" class="btn btn-secondary" value="{{#str}}back{{/str}}" data-presence-action="back" />
-            <a href="{{&urlfinish}}"><button type="button" class="btn btn-primary">{{#str}}finishevaluation, presence{{/str}}</button></a>
-        </div>
-    {{/users?}}
+    <hr />
+    <div class="">
+        <input type="button" class="btn btn-secondary" value="{{#str}}back{{/str}}" data-presence-action="back" />
+        <a href="{{&urlfinish}}"><button type="button" class="btn btn-primary">{{#str}}finishevaluation, presence{{/str}}</button></a>
+    </div>
     {{^users}}
         <div class="card bg-light p-2 mt-4 ">
             <div class="card-body p-2 text-center">

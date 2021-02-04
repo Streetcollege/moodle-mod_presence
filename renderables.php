@@ -462,6 +462,7 @@ class presence_user_data implements renderable {
             }
             $date = userdate($session->sessdate, get_string('strftimedatefullshort', 'langconfig'));
             $session->booked = in_array($session->id, $bookedsessionids);
+            $session->bookable = $session->bookable &&  ($session->maxattendants == 0 || sizeof($session->attendants) < $session->maxattendants);
             if ($date != $olddate) {
                 $this->sessionsbydate[++$dateid] = array("date" => $date, "sessions" => array());
                 $olddate = $date;
