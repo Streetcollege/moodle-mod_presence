@@ -599,11 +599,24 @@ class mod_presence_external extends external_api {
      * @param int $book -1: unbook, 0: toggle booking, 1: book
      * @return array new status of booking
      */
-    public static function book_session(int $sessionid, int $book = 0) : array {
+    public static function book_session(int $sessionid, int $userid, int $book = 0) : array {
         global $DB, $USER;
 
+        $session = $DB->get_record('presence_sessions', array('id' => $sessionid), '*', MUST_EXIST);
+        $cm = get_coursemodule_from_instance('presence', $session->presenceid, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+
+        $unbook = false;
+        if ($book == -2 || $userid != $USER->id) {
+            require_capability('mod/presence:takepresences', $context);
+            $unbook = true;
+        }
+
+        $capunbook = has_capability('mod/presence:takepresences', $context);
+
         $bookedspots = $DB->count_records('presence_bookings', array('sessionid' => $sessionid));
-        $booking = $DB->get_record('presence_bookings', array('sessionid' => $sessionid, 'userid' => $USER->id));
+        $booking = $DB->get_record('presence_bookings', array('sessionid' => $sessionid, 'userid' => $userid));
 
 
         $maxattendants = intval($DB->get_field('presence_sessions', 'maxattendants', array('id' => $sessionid)));
@@ -615,7 +628,7 @@ class mod_presence_external extends external_api {
 
         if ($booking && $book <= 0) {
             presence_delete_calendar_event_booking($booking);
-            $DB->delete_records('presence_bookings', ['id' => $booking->id, 'userid' => $USER->id]);
+            $DB->delete_records('presence_bookings', ['id' => $booking->id, 'userid' => $userid]);
             $bookedspots--;
             $result = 0;
         } else if (!$booking && $book >= 0) {
@@ -625,7 +638,7 @@ class mod_presence_external extends external_api {
                 $errorconfirm = get_string('ok');
             } else {
                 $bookingid = $DB->insert_record('presence_bookings',
-                    array('sessionid' => $sessionid, 'userid' => $USER->id, 'caleventid' => 0));
+                    array('sessionid' => $sessionid, 'userid' => $userid, 'caleventid' => 0));
                 $bookedspots++;
                 presence_create_calendar_event_booking(self::get_booking($bookingid));
                 $result = 1;
@@ -637,7 +650,16 @@ class mod_presence_external extends external_api {
         $bookingsarray = $cal->get_session_bookings($sessionid);
         $bookings =  [];
         foreach ($bookingsarray as $user)  {
-            $bookings[] = trim($user->firstname . ' '.$user->lastname);
+            if ($capunbook) {
+                $bookings[] = '<a href="#" onclick="window.modPresenceUnbookAttendantDialog(this);"
+                                        data-presence-book-session="' . $sessionid . '"
+                                        data-presence-book-name="' . $user->firstname . ' ' . $user->lastname . '"
+                                        data-presence-book-userid="' . $user->id . '"
+                                        data-presence-book-action="-1"
+                                            >' . trim($user->firstname . ' ' . $user->lastname) . "</a>";
+            } else {
+                $bookings[] = trim($user->firstname . ' '.$user->lastname);
+            }
         }
 
         return array(
@@ -657,9 +679,11 @@ class mod_presence_external extends external_api {
      * @return external_function_parameters
      */
     public static function book_session_parameters() {
-        return new external_function_parameters(
-            array('sessionid' => new external_value(PARAM_INT, 'Session id'),
-                'book' => new external_value(PARAM_INT, '-1: unbook, 0(default): toggle, 1: book')));
+        return new external_function_parameters([
+            'sessionid' => new external_value(PARAM_INT, 'Session id'),
+            'userid' => new external_value(PARAM_INT, 'User id'),
+            'book' => new external_value(PARAM_INT, '-1: unbook, 0(default): toggle, 1: book'),
+        ]);
     }
 
     /**
@@ -672,7 +696,7 @@ class mod_presence_external extends external_api {
             'sessionid' => new external_value(PARAM_INT, 'id of the manipulated session'),
             'bookingstatus' => new external_value(PARAM_INT, 'new status of the booking (1: booked, 0: not booked)'),
             'bookedspots' => new external_value(PARAM_INT, 'bookedspots'),
-            'bookings' => new external_value(PARAM_TEXT, 'list of names of bookings'),
+            'bookings' => new external_value(PARAM_RAW, 'list of names of bookings'),
             'errortitle' => new external_value(PARAM_TEXT, 'title for error message'),
             'errormessage' => new external_value(PARAM_TEXT, 'text for error message'),
             'errorconfirm' => new external_value(PARAM_TEXT, 'error message confirm button caption')

@@ -291,6 +291,8 @@ $string['sessionbook'] = 'Book';
 $string['sessionbooktitle'] = 'Book attendance';
 $string['sessionbookedspots'] = 'Booked spots';
 $string['sessionunbook'] = 'Unbook';
+$string['sessionunbookattendant'] = 'Unbook attendant';
+$string['sessionunbookattendanttext'] = 'Do you want to unbook attendant <span id="modPresenceUnbookName">{$a}</span>?';
 $string['sessionalreadyexists'] = 'Session already exists for this date';
 $string['sessiondate'] = 'Date';
 $string['sessiondays'] = 'Session Days';

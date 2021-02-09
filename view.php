@@ -53,8 +53,10 @@ $pageparams->startdate = time();
 $pageparams->enddate = PHP_INT_MAX;
 $userdata = new presence_user_data($presence, $USER->id);
 $templatecontext = (object)[
+    'userid' => $USER->id,
     'sessions' => $userdata->sessionslog,
     'sessionsbydate' => $userdata->sessionsbydate,
+    'unbook_attendants' => has_any_capability(['mod/presence:changepresences'],$context),
 //    'urlfinishall' => $presence->url_evaluation(['action' => mod_presence_sessions_page_params::ACTION_EVALUATE_FINISH_ALL]),
 //    'buttoncaption' => $pageparams->showfinished ?
 //        get_string('showevaluations_open', 'presence') : get_string('showevaluations_all', 'presence'),

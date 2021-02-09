@@ -212,6 +212,8 @@ $string['sessionbook'] = 'Teilnehmen';
 $string['sessionbooktitle'] = 'Teilnahme anmelden';
 $string['sessionbookedspots'] = 'Teilnehmer';
 $string['sessionunbook'] = 'Absagen';
+$string['sessionunbookattendant'] = 'Teilnehmer absagen';
+$string['sessionunbookattendanttext'] = 'Möchtest du <span id="modPresenceUnbookName">{$a}</span> aus der Teilnehmerliste entfernen?';
 $string['sessionalreadyexists'] = 'Lerneinheit an diesem Datum existiert bereits';
 $string['sessiondate'] = 'Datum';
 $string['sessiondays'] = 'Tage';

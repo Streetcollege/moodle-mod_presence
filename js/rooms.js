@@ -9,9 +9,14 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification'], 
 
     $(document).ready(function() {
 
+
+        // M.util.show_confirm_dialog("really?");
+
         function modpresenceGetRoomCapacity() {
             var selectedroomid = $('#id_roomid').val();
-            if(!selectedroomid) return;
+            if(!selectedroomid) {
+                return;
+            }
             ajax.call([{
                 methodname: 'mod_presence_get_room_capacity',
                 args: {
@@ -37,7 +42,7 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification'], 
                     $('#id_maxattendants').val(0);
                 }
                 return;
-            }).fail(function(err) {
+            }).fail(function() {
                 notification.exception(new Error('Failed to load data'));
                 return;
             });
@@ -46,14 +51,18 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification'], 
 
         $('#id_roomid').change(modpresenceGetRoomCapacity);
 
-
-
-        $('button[data-presence-book-session]').click(function() {
+        function modPresenceBookSession(unbook) {
+            unbook = (unbook == true);
+            var action = $(this).attr('data-presence-book-action');
+            if (unbook) {
+                action = -1;
+            }
             ajax.call([{
                 methodname: 'mod_presence_book_session',
                 args: {
                     'sessionid': $(this).attr('data-presence-book-session'),
-                    'book': $(this).attr('data-presence-book-action'),
+                    'userid': $(this).attr('data-presence-book-userid'),
+                    'book': action,
                 },
             }])[0].done(function(result) {
                 var show = result.bookingstatus * -2 + 1;
@@ -63,16 +72,31 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification'], 
                 $(`span[data-presence-book-session=${result.sessionid}]`)
                     .text(result.bookedspots);
                 $(`span[data-presence-book-names=${result.sessionid}]`)
-                    .text(result.bookings);
+                    .html(result.bookings);
                 if (result.errormessage) {
                     notification.alert(result.errortitle, result.errormessage, result.errorconfirm);
                 }
                 return;
-            }).fail(function(err) {
+            }).fail(function() {
                 notification.exception(new Error('Failed to load data'));
                 return;
             });
-        });
+        }
+
+        $('button[data-presence-book-session]').click(modPresenceBookSession);
+
+        window.modPresenceBookSession = modPresenceBookSession;
+        window.modPresenceUnbookAttendantDialog = function(o) {
+            $('#modPresenceUnbookName').html("<b>" + $(o).attr("data-presence-book-name") + "</b>");
+            $('#modPresenceBookingUnbookConfirm').attr("data-presence-book-session", $(o).attr("data-presence-book-session"));
+            $('#modPresenceBookingUnbookConfirm').attr("data-presence-book-userid", $(o).attr("data-presence-book-userid"));
+            $('#modPresenceBookingUnbookConfirm').attr("data-presence-book-action", $(o).attr("data-presence-book-action"));
+            $('#modPresenceBookingUnbookModal').modal('show');
+        };
+        window.modPresenceUnbookAttendant = function(o) {
+            window.modPresenceBookSession.call(o, true);
+            $('#modPresenceBookingUnbookModal').modal('hide');
+        };
 
         function checkDoubleBookings() {
 
@@ -101,7 +125,9 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification'], 
                 $('#id_sestime_starthour').val(),
                 $('#id_sestime_startminute').val()
             ).getTime() / 1000;
-            if (from == null) from = 0;
+            if (from == null) {
+                from = 0;
+            }
 
 
 
@@ -112,7 +138,9 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification'], 
                 $('#id_sestime_endhour').val(),
                 $('#id_sestime_endminute').val()
             ).getTime() / 1000;
-            if (to == null) to = 0;
+            if (to == null) {
+                to = 0;
+            }
 
             var repeatUntil = new Date(
                 $('#id_sessionenddate_year').val(),
@@ -121,10 +149,14 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification'], 
             ).getTime() / 1000;
 
             var repeat = Number($('#id_addmultiply').prop('checked'));
-            if (isNaN(repeat)) repeat = 0;
+            if (isNaN(repeat)) {
+                repeat = 0;
+            }
 
             var repeatperiod = Number($('#id_period').val());
-            if (isNaN(repeatperiod)) repeatperiod = 0;
+            if (isNaN(repeatperiod)) {
+                repeatperiod = 0;
+            }
 
             ajax.call([{
                 methodname: 'mod_presence_check_doublebooking',
@@ -139,9 +171,8 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification'], 
                     'repeatuntil': repeatUntil ? repeatUntil : 0,
                 },
             }])[0].done(function(result) {
-                console.log(result);
                 $('#presence_collisions').html(result.result).show();
-            }).fail(function(err) {
+            }).fail(function() {
                 notification.exception(new Error('Failed to load data'));
             });
         }
