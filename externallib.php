@@ -653,10 +653,10 @@ class mod_presence_external extends external_api {
             if ($capunbook) {
                 $bookings[] = '<a href="#" onclick="window.modPresenceUnbookAttendantDialog(this);"
                                         data-presence-book-session="' . $sessionid . '"
-                                        data-presence-book-name="' . $user->firstname . ' ' . $user->lastname . '"
+                                        data-presence-book-name="' . $user->firstname . ' ' . $user->lastname . ' '.$user->idnumber. '"
                                         data-presence-book-userid="' . $user->id . '"
                                         data-presence-book-action="-1"
-                                            >' . trim($user->firstname . ' ' . $user->lastname) . "</a>";
+                                            >' . trim($user->firstname . ' ' . $user->lastname . ' ' .$user->idnumber) . "</a>";
             } else {
                 $bookings[] = trim($user->firstname . ' '.$user->lastname);
             }
@@ -961,7 +961,7 @@ class mod_presence_external extends external_api {
         }
 
 
-        $sql = "SELECT u.id, u.firstname, u.lastname,  CAST(ue.status IS NOT NULL AS INT) AS enrolled
+        $sql = "SELECT u.id, u.firstname, u.lastname, u.idnumber, CAST(ue.status IS NOT NULL AS INT) AS enrolled
                   FROM {user} u
              LEFT JOIN {user_enrolments} ue ON u.id = ue.userid AND ue.status = 0 
                  AND ue.enrolid IN (SELECT id FROM {enrol} WHERE courseid = :courseid1)
@@ -989,7 +989,7 @@ class mod_presence_external extends external_api {
         foreach ($enrolments as $enrolment) {
             $results[] = [
                 'userid' => $enrolment->id,
-                'name' => trim($enrolment->firstname . ' ' . $enrolment->lastname),
+                'name' => trim($enrolment->firstname . ' ' . $enrolment->lastname . ' ' . $enrolment->idnumber),
                 'tag' => $enrolment->enrolled ?
                     get_string('enrolled', 'presence') : get_string('notentrolled', 'presence'),
                 'action' => $enrolment->enrolled ? 1 : 2,

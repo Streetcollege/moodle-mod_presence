@@ -51,9 +51,9 @@
                                    data-presence-book-session="{{sessionid}}"
                                    data-presence-book-userid="{{id}}"
                                    data-presence-book-action="-1"
-                                   data-presence-book-name="{{firstname}} {{lastname}}"
+                                   data-presence-book-name="{{firstname}} {{lastname}} {{idnumber}}"
                                 >{{/unbook_attendants}}
-                                {{firstname}} {{lastname}}{{#unbook_attendants}}</a>{{/unbook_attendants}}{{^islast}}, {{/islast}}
+                                {{firstname}} {{lastname}} {{idnumber}}{{#unbook_attendants}}</a>{{/unbook_attendants}}{{^islast}}, {{/islast}}
                             {{/attendants}}
                         </span>
                     </div>
@@ -84,12 +84,6 @@
     </div>
 {{/sessionsbydate}}
 
-
-
-<!-- Button trigger modal -->
-<a href="#" data-toggle="modal" data-target="#modPresenceBookingUnbookModal" >
-    Launch demo modal
-</a>
 
 <!-- Modal -->
 <div class="modal fade" id="modPresenceBookingUnbookModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
