@@ -300,6 +300,11 @@ class presence_sessions_data implements renderable {
         foreach ($this->sessions as $session) {
             $date = userdate($session->sessdate, get_string('strftimedatefullshort', 'langconfig'));
 
+            $session->attendants = array_values($presence->get_users_session($session->id));
+            if (count($session->attendants)) {
+                $session->attendants[count($session->attendants) - 1]->islast = true;
+            }
+
             if ($date != $olddate) {
                 $this->sessionsbydate[++$dateid] = array("date" => $date, "sessions" => array());
                 $olddate = $date;

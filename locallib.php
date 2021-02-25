@@ -543,7 +543,7 @@ function presence_room_capacities() {
     $options[0] = '';
     $i = 1;
     for ($n = 1; $n <= PRESENCE_ROOMS_MAX_CAPACITY; $n += $n < 20 ? 1 : ($n < 50 ? 5 : ($n < 200 ? 10 : ($n < 500 ? 50 : 100)))) {
-        $options[$i++] = $n;
+        $options[$n] = $n;
     }
     return $options;
 }
