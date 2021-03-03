@@ -99,7 +99,7 @@ switch ($presence->pageparams->action) {
         presence_print_header();
         $pageparams->startdate = 0;
         $pageparams->enddate = time();
-        $sessiondata = new presence_sessions_data($presence);
+        $sessiondata = new presence_sessions_data($presence, true);
         $templatecontext = (object)[
             'sessions' => $sessiondata->sessions,
             'sessionsbydate' => $sessiondata->sessionsbydate,

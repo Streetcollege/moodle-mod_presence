@@ -289,6 +289,7 @@ class presence_sessions_data implements renderable {
      * Prepare info about presence sessions taking into account view parameters.
      *
      * @param mod_presence_structure $presence instance
+     * @throws coding_exception
      */
     public function __construct(mod_presence_structure $presence) {
 
@@ -301,6 +302,16 @@ class presence_sessions_data implements renderable {
             $date = userdate($session->sessdate, get_string('strftimedatefullshort', 'langconfig'));
 
             $session->attendants = array_values($presence->get_users_session($session->id));
+            // hide non-attendants for closed evaluations
+            if ($session->lastevaluatedby > 0) {
+                foreach ($session->attendants as $id => $attendant) {
+                    if (!$attendant->duration) {
+                        unset ($session->attendants[$id]);
+                    }
+                }
+                $session->bookings = sizeof($session->attendants);
+            }
+            $session->attendants = array_values($session->attendants);
             if (count($session->attendants)) {
                 $session->attendants[count($session->attendants) - 1]->islast = true;
             }

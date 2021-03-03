@@ -652,6 +652,15 @@ class mod_presence_structure {
             }
         }
 
+        foreach ($users as $studentid => $user) {
+            if (!isset($user->duration)) {
+                $user->duration = 0;
+            }
+//            if ($hidezerohours && !$user->duration) {
+//                unset ($users[$studentid]);
+//            }
+        }
+
         return $users;
     }
 
