@@ -459,3 +459,11 @@ function presence_remove_user_from_thirdpartyemails($warnings, $userid) {
         $DB->update_record('presence_warning', $updatedwarning);
     }
 }
+
+/**
+ * Get presences associated with given course id
+ */
+function presence_get_presences($courseid) {
+    global $DB;
+    return $DB->get_records('mod_presence', ['course' => $courseid]);
+}
