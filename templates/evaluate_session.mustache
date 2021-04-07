@@ -175,8 +175,8 @@
     {{/users}}
     <hr />
     <div class="">
-        <input type="button" class="btn btn-secondary" value="{{#str}}back{{/str}}" data-presence-action="back" />
-        <a href="{{&urlfinish}}"><button type="button" class="btn btn-primary">{{#str}}finishevaluation, presence{{/str}}</button></a>
+        <button type="button" class="btn btn-secondary" id="mod_presence_cancel_evaluation">{{#str}}back{{/str}}</button>
+        <button type="button" data-urlfinish="{{&urlfinish}}" id="mod_presence_finish_evaluation" class="btn btn-primary">{{#str}}finishevaluation, presence{{/str}}</button></>
     </div>
     {{^users}}
         <div class="card bg-light p-2 mt-4 ">

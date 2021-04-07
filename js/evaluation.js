@@ -14,16 +14,61 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
             var queryId = 0;
             var usersToAdd = {};
             var newUserId = -1;
+            var saveRemarkOpenRequests = 0;
+            var saveRemarkForwardUrl = null;
 
             function resetSearchBox() {
                 $('input[data-module=mod_presence_add]').val('');
                 $('div[data-module=mod_presence_add] > button[data-template=false]').remove();
             }
 
-            function addStudent(o) {
-                var row = $(this);
+            function removeStudent(o) {
+                o.preventDefault();
+                var element = $(this);
+                var userid = element.attr('data-userid');
+                delete usersToAdd[userid];
+                updateList();
+            }
+
+            function updateList() {
+                var users = Object.values(usersToAdd);
+                users.sort(function(a, b) {
+                    if (a.action > b.action) {
+                        return 1;
+                    }
+                    if (a.action < b.action) {
+                        return -1;
+                    }
+                    if (a.name > b.name) {
+                        return 1;
+                    }
+                    if (a.name < b.name) {
+                        return -1;
+                    }
+                    return 0;
+                });
+                $('div[data-module=mod_presence_add_list] > div[data-template=false]').remove();
+                users.forEach(function(user) {
+                    var element = $('div[data-module=mod_presence_add_list] > div[data-template=true]')
+                        .clone()
+                        .attr('data-template', false)
+                        .attr('data-userid', user.id)
+                        .appendTo('div[data-module=mod_presence_add_list]');
+                    $(element.children()[0]).html(user.actiontext + ": <b>" + user.name + '</b>');
+                    $(element.children()[1]).attr('data-userid', user.id).click(removeStudent);
+                    element.show();
+                });
+                if (users.length) {
+                    $('div[data-module=mod_presence_add_list]').show();
+                } else {
+                    $('div[data-module=mod_presence_add_list]').hide();
+                }
+            }
+
+            function addStudent() {
+                let row = $(this);
                 row.hide();
-                var userid = row.attr('data-userid');
+                let userid = row.attr('data-userid');
                 if (userid in usersToAdd) {
                     return;
                 }
@@ -71,7 +116,6 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
             });
 
             $('#mod_presence_add_save').click(function() {
-                console.log('magic useradd');
                 var sessionid = Number($('[data-module=mod_presence][data-sessionid]').val());
                 var userdata = [];
                 Object.values(usersToAdd).forEach(function(user) {
@@ -89,7 +133,7 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
                         'sessionid': sessionid,
                         'userdata': userdata,
                     },
-                }])[0].done(function(res) {
+                }])[0].done(function() {
                     window.location.reload();
                 }).fail(function() {
                     notification.exception(new Error('Failed to magically add users'));
@@ -97,48 +141,9 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
                 });
             });
 
-            function updateList() {
-                var users = Object.values(usersToAdd);
-                users.sort(function(a, b) {
-                    if (a.action > b.action) {
-                        return 1;
-                    }
-                    if (a.action < b.action) {
-                        return -1;
-                    }
-                    if (a.name > b.name) {
-                        return 1;
-                    }
-                    if (a.name < b.name) {
-                        return -1;
-                    }
-                    return 0;
-                });
-                $('div[data-module=mod_presence_add_list] > div[data-template=false]').remove();
-                users.forEach(function(user) {
-                    var element = $('div[data-module=mod_presence_add_list] > div[data-template=true]')
-                        .clone()
-                        .attr('data-template', false)
-                        .attr('data-userid', user.id)
-                        .appendTo('div[data-module=mod_presence_add_list]');
-                    $(element.children()[0]).html(user.actiontext + ": <b>" + user.name + '</b>');
-                    $(element.children()[1]).attr('data-userid', user.id).click(removeStudent);
-                    element.show();
-                });
-                if (users.length) {
-                    $('div[data-module=mod_presence_add_list]').show();
-                } else {
-                    $('div[data-module=mod_presence_add_list]').hide();
-                }
-            }
 
-            function removeStudent(o) {
-                o.preventDefault();
-                var element = $(this);
-                var userid = element.attr('data-userid');
-                delete usersToAdd[userid];
-                updateList();
-            }
+
+
 
             function querySend() {
                 queryId++;
@@ -206,33 +211,66 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
                 queryTimer = setTimeout(querySend, 250);
             });
 
+            function callUrl(urlfinish) {
+                if (urlfinish == "back") {
+                    window.history.back();
+                } else {
+                    window.location = urlfinish;
+                }
+            }
+
+            function checkLeaveEvaluation() {
+                console.log("open requests: " + saveRemarkOpenRequests + " url: " + saveRemarkForwardUrl);
+                if (saveRemarkOpenRequests <= 0 && saveRemarkForwardUrl) {
+                    console.log("leave page");
+                    callUrl(saveRemarkForwardUrl);
+                }
+            }
+
+
+            function requestCountAdd() {
+                saveRemarkOpenRequests++;
+            }
+
+            function requestCountSub() {
+                saveRemarkOpenRequests--;
+                checkLeaveEvaluation();
+            }
 
             // Take evaluation.
-            $('[data-module=mod_presence_evaluate]').change(function() {
+            function saveRemarkField(o) {
+
+                if (!$(o).attr("data-focus")) {
+                    console.log("already saved");
+                    return null;
+                }
+                console.log("save remarks");
+                $(o).attr("data-focus", false);
+
                 var sessionid = $('[data-module=mod_presence][data-sessionid]').val();
                 if (!sessionid) {
                     return;
                 }
 
-                var userid = Number($(this).attr("data-userid"));
+                var userid = Number($(o).attr("data-userid"));
                 var userids = [];
                 if (userid) {
                     userids.push(userid);
-                    if ($(this).attr('type') == 'checkbox') {
+                    if ($(o).attr('type') == 'checkbox') {
                         $("[data-module=mod_presence_evaluate][data-field=duration][data-userid=" + userid + "]")
-                            .prop('disabled', !$(this).prop('checked'));
+                            .prop('disabled', !$(o).prop('checked'));
                     }
                 } else {
                     // Set all..
                     if ($(this).attr('type') == 'checkbox') {
-                        $('[data-module=mod_presence_evaluate][data-field=presence]').prop('checked', $(this).prop('checked'));
+                        $('[data-module=mod_presence_evaluate][data-field=presence]').prop('checked', $(o).prop('checked'));
                         $('[data-module=mod_presence_evaluate][data-field=duration]')
                             .filter(function() {
-                                return $(this).attr("data-userid") > 0;
+                                return $(o).attr("data-userid") > 0;
                             })
-                            .prop('disabled', !$(this).prop('checked'));
+                            .prop('disabled', !$(o).prop('checked'));
                     } else {
-                        var duration = $(this).val();
+                        var duration = $(o).val();
                         $('[data-module=mod_presence_evaluate][data-field=duration]').val(duration);
                     }
                     // Collect user ids to send..
@@ -265,6 +303,7 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
                     });
                 }
 
+                requestCountAdd();
                 ajax.call([{
                     methodname: 'mod_presence_update_evaluation',
                     args: {
@@ -272,11 +311,50 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
                         'updates': updates,
                     },
                 }])[0].done(function() {
+                    requestCountSub();
                     return;
                 }).fail(function() {
+                    requestCountSub();
                     notification.exception(new Error('Failed to load data'));
                     return;
                 });
+            }
+
+
+            $('[data-module=mod_presence_evaluate]').focus(function() {
+                $(this).attr("data-focus", true);
+                console.log("focus: ");
+                console.log($(this));
+            });
+
+            $('[data-module=mod_presence_evaluate]').blur(function() {
+                console.log("focus: ");
+                console.log($(this));
+                saveRemarkField(this);
+            });
+
+
+
+            function leaveEvaluation(urlfinish) {
+                var focussed = $('[data-module=mod_presence_evaluate][data-focus=true]').length;
+                console.log("click finish evaluation, focussed: " + focussed + ", ajax: " + saveRemarkOpenRequests
+                    + ", urlfinish=" + urlfinish);
+                if (focussed > 0 || saveRemarkOpenRequests > 0) {
+                    // can't leave form while saving in process... we will go there once ajax is done
+                    console.log("waiting for ajax");
+                    saveRemarkForwardUrl = urlfinish;
+                } else {
+                    console.log("leave right now");
+                    callUrl(urlfinish);
+                }
+            }
+
+            $('#mod_presence_cancel_evaluation').click(function() {
+                leaveEvaluation("back");
+            });
+
+            $('#mod_presence_finish_evaluation').click(function(o) {
+                leaveEvaluation($('#mod_presence_finish_evaluation').attr('data-urlfinish'));
             });
 
             $('#mod_presence_evaluation_list').show();
