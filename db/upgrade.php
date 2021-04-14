@@ -144,6 +144,19 @@ function xmldb_presence_upgrade($oldversion=0) {
         upgrade_mod_savepoint(true, 2021041403, 'presence');
     }
 
+    if ($oldversion < 2021041404) {
+
+        // Rename field supervisor on table presence_user to NEWNAMEGOESHERE.
+        $table = new xmldb_table('presence_user');
+        $field = new xmldb_field('attendant', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'statusremark');
+
+        // Launch rename field supervisor.
+        $dbman->rename_field($table, $field, 'supervisor');
+
+        // Presence savepoint reached.
+        upgrade_mod_savepoint(true, 2021041404, 'presence');
+    }
+
 
     return true;
 }
