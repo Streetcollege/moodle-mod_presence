@@ -157,6 +157,22 @@ function xmldb_presence_upgrade($oldversion=0) {
         upgrade_mod_savepoint(true, 2021041404, 'presence');
     }
 
+    if ($oldversion < 2021041405) {
+
+        // Define field realname to be added to presence_user.
+        $table = new xmldb_table('presence_user');
+        $field = new xmldb_field('realname', XMLDB_TYPE_TEXT, null, null, null, null, null, 'timecreated');
+
+        // Conditionally launch add field realname.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Presence savepoint reached.
+        upgrade_mod_savepoint(true, 2021041405, 'presence');
+    }
+
+
 
     return true;
 }
