@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/presence/db" VERSION="20201128" COMMENT="XMLDB file for Moodle mod/presence"
+<XMLDB PATH="mod/presence/db" VERSION="20210414" COMMENT="XMLDB file for Moodle mod/presence"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -115,12 +115,25 @@
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="presence_user" COMMENT="Additional user fields for presence plugin">
+    <TABLE NAME="presence_user" COMMENT="Additional user fields for presence plugin and local_streetcollege module">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="strengths" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="List of strengths of this user"/>
         <FIELD NAME="statusremark" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="attendant" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A contact person for this user"/>
+        <FIELD NAME="realname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Real name of this user"/>
+        <FIELD NAME="contactperson" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A contact person to this user"/>
+        <FIELD NAME="agegroup" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Age group of this user"/>
+        <FIELD NAME="backgrounds" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="backgrounds of user, list of items""/>
+        <FIELD NAME="languages" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Languages of user, list of items"/>
+        <FIELD NAME="incomes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Incomes of user, list of items"/>
+        <FIELD NAME="supports" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Supporting programs, list of items"/>
+        <FIELD NAME="situations" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Personal situation of user, list of items"/>
+        <FIELD NAME="degree" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="ighest degree of user"/>
+        <FIELD NAME="degreetarget" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Degree user wants to achieve"/>
+        <FIELD NAME="checklistchecks" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Checked items on checklist"/>
+        <FIELD NAME="checklistitems" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Custom items for users checklist"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
