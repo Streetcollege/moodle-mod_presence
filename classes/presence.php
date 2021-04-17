@@ -45,8 +45,8 @@ class presence
         }
 
         $presenceid = $DB->get_field_SQL('select p.id
-            FROM mdl_presence p
-            LEFT JOIN mdl_course_modules cm ON  cm.instance = p.id
+            FROM {presence} p
+            LEFT JOIN {course_modules} cm ON  cm.instance = p.id
             WHERE cm.module = :moduleid
                 AND cm.course = :courseid
                 AND cm.deletioninprogress = 0

@@ -317,8 +317,8 @@ class mod_presence_structure {
         if(!isset($params['userid']) || !$params['userid']) {
             throw new \coding_exception('User id needed to create user profile URL.');
         }
-        $params = array_merge( array('id' => $this->cm->id), $params);
-        return new moodle_url('/mod/presence/userprofile.php', $params);
+        $params = array_merge( array('courseid' => $this->cm->course), $params);
+        return new moodle_url('/local/streetcollege/userprofile.php', $params);
     }
 
 

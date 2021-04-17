@@ -125,7 +125,7 @@
         <FIELD NAME="realname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Real name of this user"/>
         <FIELD NAME="contactperson" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A contact person to this user"/>
         <FIELD NAME="agegroup" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Age group of this user"/>
-        <FIELD NAME="backgrounds" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="backgrounds of user, list of items""/>
+        <FIELD NAME="backgrounds" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="backgrounds of user, list of items"/>
         <FIELD NAME="languages" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Languages of user, list of items"/>
         <FIELD NAME="incomes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Incomes of user, list of items"/>
         <FIELD NAME="supports" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Supporting programs, list of items"/>
