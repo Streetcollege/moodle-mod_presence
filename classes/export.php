@@ -53,8 +53,11 @@ class export_sws {
     public $id = 'mod_presence/presence';
     public $name = "SWS Entwicklung";
 
-    public function write($spreadsheet, $datefrom, $dateto) {
+    public function write($spreadsheet, $params) {
         global $DB;
+
+        $datefrom = $params['datefrom'];
+        $dateto = $params['dateto'];
 
         $records = $DB->get_records_sql('
             SELECT sws.id as id, u.id as uid, u.lastname, u.firstname, sws.sws, mc.fullname as coursename, 
@@ -73,7 +76,7 @@ class export_sws {
 
         $sheet = $spreadsheet->getActiveSheet();
         $row = 1;
-        $sheet->setCellValueByColumnAndRow(1, $row, 'SWS Entwicklung');
+        $sheet->setCellValueByColumnAndRow(1, $row, 'SWS Entwicklung '.$datefrom.' bis '.$dateto);
 
         $sheet->getColumnDimension('A')->setAutoSize(true);
         $sheet->getColumnDimension('B')->setAutoSize(true);
