@@ -949,7 +949,7 @@ class mod_presence_structure {
 
         if ($this->pageparams->startdate && $this->pageparams->enddate) {
             $where = "ats.presenceid = :aid AND ats.sessdate >= :csdate AND
-                      ats.sessdate >= :sdate AND ats.sessdate < :edate";
+                      ats.sessdate + ats.duration >= :sdate AND ats.sessdate + ats.duration < :edate";
         } else {
             $where = "ats.presenceid = :aid AND ats.sessdate >= :csdate";
         }
@@ -979,12 +979,11 @@ class mod_presence_structure {
 
         // All sessions for current groups.
 
-
         if ($this->pageparams->startdate && $this->pageparams->enddate) {
             $where = "ats.presenceid = :aid AND ats.sessdate >= :csdate AND
                       ats.sessdate >= :sdate AND ats.sessdate < :edate ";
         } else {
-            $where = "ats.presenceid = :aid AND ats.sessdate >= :csdate ";
+            $where = "ats.presenceid = :aid  AND ats.sessdate >= :csdate";
         }
         $sql = "SELECT $id, ats.id, ats.sessdate, ats.duration, ats.description,
                        ats.roomid, ats.maxattendants, atr.name AS roomname, atr.description AS roomdescription, atr.bookable,

@@ -118,14 +118,14 @@
                         <div class="float-left ">{{#str}}allstudents, presence{{/str}}</div>
                     </div>
                     <div class="float-right">
-                        <select data-module="mod_presence_evaluate" data-userid="0" data-field="duration" type="text" class="form-control float-left">
+                        <select data-module="mod_presence_evaluate" data-trigger="change" data-userid="0" data-field="duration" type="text" class="form-control float-left">
                             {{#durationoptions}}
                                 <option value="{{value}}" {{#selected}}selected{{/selected}}>{{caption}}</option>
                             {{/durationoptions}}
                         </select>
                     </div>
                     <div class="float-right align-right mr-4" style="width:20px">
-                        <input data-module="mod_presence_evaluate"  data-userid="0" data-field="presence" type="checkbox" class="float-left form-control" />
+                        <input data-module="mod_presence_evaluate"  data-trigger="change" data-userid="0" data-field="presence" type="checkbox" class="float-left form-control" />
                     </div>
                 </div>
 
@@ -147,24 +147,27 @@
                     <div class="col-lg-3">
                         <div class="float-right">
                             <select {{^duration}}disabled="disabled"{{/duration}} data-module="mod_presence_evaluate"
-                                    data-userid="{{id}}" data-field="duration" class="form-control float-left">
+                                                                                  data-trigger="change"
+                                                                                  data-userid="{{id}}" data-field="duration" class="form-control float-left">
                                 {{#durationoptions}}
                                 <option value="{{value}}" {{#selected}}selected{{/selected}}>{{caption}}</option>
                                 {{/durationoptions}}
                             </select>
                         </div>
                         <div class="float-right align-right mr-4" style="width:20px">
-                            <input {{#duration}}checked{{/duration}} data-module="mod_presence_evaluate" data-userid="{{id}}" data-field="presence" type="checkbox" class="float-left form-control" />
+                            <input {{#duration}}checked{{/duration}} data-module="mod_presence_evaluate"
+                                                                     data-trigger="change"
+                                                                     data-userid="{{id}}" data-field="presence" type="checkbox" class="float-left form-control" />
                         </div>
                     </div>
                     <div class="col-lg-3 mt-sm-2 mt-lg-0 pr-lg-1">
-                            <input data-module="mod_presence_evaluate"  data-userid="{{id}}" data-field="remarks_course"
+                            <input data-module="mod_presence_evaluate"  data-trigger="blur" data-userid="{{id}}" data-field="remarks_course"
                                    placeholder="{{#str}}courseremark, presence{{/str}}"
                                    value="{{remarks_course}}"
                                    type="text" class="form-control" />
                     </div>
                     <div class="col-lg-3 mt-sm-2 mt-lg-0 pl-lg-1">
-                        <input data-module="mod_presence_evaluate"  data-userid="{{id}}" data-field="remarks_personality"
+                        <input data-module="mod_presence_evaluate" data-trigger="blur"  data-userid="{{id}}" data-field="remarks_personality"
                                placeholder="{{#str}}personalityremark, presence{{/str}}"
                                value="{{remarks_personality}}"
                                type="text" class="form-control" />

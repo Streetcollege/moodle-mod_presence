@@ -49,7 +49,7 @@ presence_init_page([
     'tab' => presence_tabs::TAB_BOOKING,
 ]);
 
-$pageparams->startdate = time();
+$pageparams->startdate = strtotime(date('Y-m-d'));
 $pageparams->enddate = PHP_INT_MAX;
 $userdata = new presence_user_data($presence, $USER->id);
 $templatecontext = (object)[

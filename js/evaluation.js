@@ -22,13 +22,6 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
                 $('div[data-module=mod_presence_add] > button[data-template=false]').remove();
             }
 
-            function removeStudent(o) {
-                o.preventDefault();
-                var element = $(this);
-                var userid = element.attr('data-userid');
-                delete usersToAdd[userid];
-                updateList();
-            }
 
             function updateList() {
                 var users = Object.values(usersToAdd);
@@ -65,10 +58,18 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
                 }
             }
 
+            function removeStudent(o) {
+                o.preventDefault();
+                var element = $(this);
+                var userid = element.attr('data-userid');
+                delete usersToAdd[userid];
+                updateList();
+            }
+
             function addStudent() {
-                let row = $(this);
+                var row = $(this);
                 row.hide();
-                let userid = row.attr('data-userid');
+                var userid = row.attr('data-userid');
                 if (userid in usersToAdd) {
                     return;
                 }
@@ -220,9 +221,9 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
             }
 
             function checkLeaveEvaluation() {
-                console.log("open requests: " + saveRemarkOpenRequests + " url: " + saveRemarkForwardUrl);
+                // console.log("open requests: " + saveRemarkOpenRequests + " url: " + saveRemarkForwardUrl);
                 if (saveRemarkOpenRequests <= 0 && saveRemarkForwardUrl) {
-                    console.log("leave page");
+//                    console.log("leave page");
                     callUrl(saveRemarkForwardUrl);
                 }
             }
@@ -240,11 +241,11 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
             // Take evaluation.
             function saveRemarkField(o) {
 
-                if (!$(o).attr("data-focus")) {
+                if ($(o).attr("data-trigger") === 'blur' && !$(o).attr("data-focus")) {
                     console.log("already saved");
                     return null;
                 }
-                console.log("save remarks");
+                // console.log("save remarks");
                 $(o).attr("data-focus", false);
 
                 var sessionid = $('[data-module=mod_presence][data-sessionid]').val();
@@ -254,6 +255,7 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
 
                 var userid = Number($(o).attr("data-userid"));
                 var userids = [];
+                console.log('userid=', userid);
                 if (userid) {
                     userids.push(userid);
                     if ($(o).attr('type') == 'checkbox') {
@@ -262,10 +264,12 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
                     }
                 } else {
                     // Set all..
-                    if ($(this).attr('type') == 'checkbox') {
+                    console.log("set all. type=", $(o).attr('type'));
+                    if ($(o).attr('type') == 'checkbox') {
+                        console.log("checkbox");
                         $('[data-module=mod_presence_evaluate][data-field=presence]').prop('checked', $(o).prop('checked'));
                         $('[data-module=mod_presence_evaluate][data-field=duration]')
-                            .filter(function() {
+                            .filter(function(o) {
                                 return $(o).attr("data-userid") > 0;
                             })
                             .prop('disabled', !$(o).prop('checked'));
@@ -283,6 +287,7 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
                 }
 
                 var updates = [];
+                console.log('updates: ', updates);
 
                 for (var k in userids) {
                     userid = userids[k];
@@ -321,15 +326,18 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
             }
 
 
-            $('[data-module=mod_presence_evaluate]').focus(function() {
+            $('[data-module=mod_presence_evaluate][data-trigger=focus]').focus(function() {
                 $(this).attr("data-focus", true);
-                console.log("focus: ");
-                console.log($(this));
+                console.log("focus: ", $(this));
             });
 
-            $('[data-module=mod_presence_evaluate]').blur(function() {
-                console.log("focus: ");
-                console.log($(this));
+            $('[data-module=mod_presence_evaluate][data-trigger=blur]').blur(function() {
+                console.log("blur: ", $(this));
+                saveRemarkField(this);
+            });
+
+            $('[data-module=mod_presence_evaluate][data-trigger=change]').change(function() {
+                console.log("change: ", $(this));
                 saveRemarkField(this);
             });
 
@@ -356,6 +364,7 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
             $('#mod_presence_finish_evaluation').click(function(o) {
                 leaveEvaluation($('#mod_presence_finish_evaluation').attr('data-urlfinish'));
             });
+
 
             $('#mod_presence_evaluation_list').show();
             $('#mod_presence_evaluation_loading').hide();

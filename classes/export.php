@@ -53,7 +53,7 @@ class export_sws {
     public $id = 'mod_presence/presence';
     public $name = "SWS Entwicklung";
 
-    public function write($spreadsheet, $year) {
+    public function write($spreadsheet, $datefrom, $dateto) {
         global $DB;
 
         $records = $DB->get_records_sql('
@@ -95,7 +95,8 @@ class export_sws {
         $row += 1;
         $uid = 0;
         foreach ($records as $record) {
-            if (date('Y', $record->timemodified) != $year) {
+            $date = date('Y-m-d', $record->timemodified);
+            if ($date < $datefrom || $date > $dateto) {
                 continue;
             }
             if ($uid != $record->uid) {
