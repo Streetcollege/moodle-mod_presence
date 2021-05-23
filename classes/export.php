@@ -52,6 +52,8 @@ class export_sws {
 
     public $id = 'mod_presence/presence';
     public $name = "SWS Entwicklung";
+    public $listed = true;
+
 
     public function write($spreadsheet, $params) {
         global $DB;
