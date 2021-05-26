@@ -27,6 +27,13 @@ defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__).'/locallib.php');
 
 
+require_once(dirname(__FILE__).'../../../local/streetcollege/classes/tools.php');
+
+
+
+
+
+
 /**
  * Represents info about presence tabs.
  *
@@ -299,7 +306,8 @@ class presence_sessions_data implements renderable {
         $olddate = null;
         $dateid = -1;
         foreach ($this->sessions as $session) {
-            $date = userdate($session->sessdate, get_string('strftimedatefullshort', 'langconfig'));
+            $date = \local_streetcollege\tools::format_date_short($session->sessdate);
+            //userdate($session->sessdate, get_string('strftimedate', 'langconfig'));
 
             $session->attendants = array_values($presence->get_users_session($session->id));
             // hide non-attendants for closed evaluations
@@ -476,7 +484,7 @@ class presence_user_data implements renderable {
             if (count($session->attendants)) {
                 $session->attendants[count($session->attendants) - 1]->islast = true;
             }
-            $date = userdate($session->sessdate, get_string('strftimedatefullshort', 'langconfig'));
+            $date = \local_streetcollege\tools::format_date_short($session->sessdate);
             $session->booked = in_array($session->id, $bookedsessionids);
             $session->bookable = !$session->booked && ($session->maxattendants == 0 || (sizeof($session->attendants) < $session->maxattendants));
             $session->sessionid = $session->id;

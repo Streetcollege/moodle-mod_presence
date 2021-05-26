@@ -44,6 +44,7 @@ class export
     public function available_tables() {
         return [
             new export_sws(),
+            new export_active_students(),
         ];
     }
 }
@@ -119,6 +120,97 @@ class export_sws {
             $dozname = $record->dozlastname . ($record->dozlastname && $record->dozfirstname ? ', ' : '')
                 . $record->dozfirstname;
             $sheet->setCellValueByColumnAndRow($col++, $row, $dozname);
+            $row++;
+        }
+
+    }
+}
+
+class export_active_students {
+
+    public $id = 'mod_presence/active_students';
+    public $name = "Atkive Studenten";
+    public $listed = true;
+
+
+    public function write($spreadsheet, $params) {
+        global $DB;
+
+        $datefrom = $params['datefrom'];
+        $dateto = $params['dateto'];
+        $timefrom = strtotime($datefrom);
+        $timeto = strtotime($dateto) + (24 * 3600);
+
+        $records = $DB->get_records_sql('
+            SELECT pe.studentid, u.idnumber, COUNT(*) as presences, SUM(pe.duration) / 3600 hours
+            FROM {presence_evaluations} pe
+            LEFT JOIN {user} u ON pe.studentid = u.id
+            LEFT JOIN {presence_sessions} ps ON pe.sessionid = ps.id
+            WHERE pe.duration > 0
+            AND ps.sessdate >= :timefrom
+            AND ps.sessdate < :timeto
+            GROUP BY pe.studentid, u.idnumber
+            ORDER BY pe.studentid ASC
+        ', [
+            'timefrom' => $timefrom,
+            'timeto' => $timeto,
+        ]);
+
+        $longterm = 0;
+        $shortterm = 0;
+        $longtermthreshold = 8;
+        foreach($records as $record) {
+            if ($record->presences >= $longtermthreshold) {
+                $longterm++;
+            } else {
+                $shortterm++;
+            }
+        }
+
+
+//       echo '<pre>'.print_r($records, true).'</pre>';
+//        exit();
+
+        \PhpOffice\PhpSpreadsheet\Cell\Cell::setValueBinder( new \PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder() );
+
+
+
+
+        $sheet = $spreadsheet->getActiveSheet();
+        $row = 1;
+        $sheet->setCellValueByColumnAndRow(1, $row++, 'Anwesenheiten ');
+        $sheet->setCellValueByColumnAndRow(1, $row++, $datefrom.' bis '.$dateto);
+        $row += 1;
+        $sheet->setCellValueByColumnAndRow(2, $row++, 'Anzahl');
+        $sheet->setCellValueByColumnAndRow(1, $row, 'Langzeitstudenten ('.$longtermthreshold.'+ Anw.)');
+        $sheet->setCellValueByColumnAndRow(2, $row++, $longterm);
+        $sheet->setCellValueByColumnAndRow(1, $row, 'Kurzzeitstudenten (<'.$longtermthreshold.' Anw.)');
+        $sheet->setCellValueByColumnAndRow(2, $row++, $shortterm);
+
+        $sheet->getColumnDimension('A')->setAutoSize(true);
+        $sheet->getColumnDimension('B')->setAutoSize(true);
+        $sheet->getColumnDimension('C')->setAutoSize(true);
+
+//        $sheet->getStyle('A3:E3')->getFill()
+//            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+//            ->getStartColor()->setARGB('FFCCCCCC');
+        $sheet->getStyle('A1:A6')->getFont()->setBold(true);
+
+        $sheet->getStyle('A4:C4')->getFont()->setBold(true);
+
+        $sheet->getStyle('A9:C9')->getFont()->setBold(true);
+
+        $row += 2;
+        $sheet->setCellValueByColumnAndRow(1, $row, 'Matrikelnr.');
+        $sheet->setCellValueByColumnAndRow(2, $row, 'Anwesenheiten');
+        $sheet->setCellValueByColumnAndRow(3, $row, 'Stunden');
+
+        $row += 1;
+        foreach ($records as $record) {
+            $col = 1;
+            $sheet->setCellValueByColumnAndRow($col++, $row, $record->idnumber ? $record->idnumber : '[user_'.$record->studentid.']');
+            $sheet->setCellValueByColumnAndRow($col++, $row, $record->presences);
+            $sheet->setCellValueByColumnAndRow($col++, $row, $record->hours);
             $row++;
         }
 

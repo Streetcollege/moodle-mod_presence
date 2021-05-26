@@ -57,6 +57,7 @@
         </div>
     </div>
 
+
     <!-- Modal -->
     <div class="modal fade" id="mod_presence_add_modal" tabindex="-1" role="dialog" aria-labelledby="mod_presence_add_modal_label" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -128,7 +129,10 @@
                         <input data-module="mod_presence_evaluate"  data-trigger="change" data-userid="0" data-field="presence" type="checkbox" class="float-left form-control" />
                     </div>
                 </div>
-
+                <div class="col-lg-6">
+                    {{#str}}personalityremark_hint, mod_presence{{/str}}
+                    {{personalityremark_hint}}
+                </div>
             </div>
         </div>
     </div>

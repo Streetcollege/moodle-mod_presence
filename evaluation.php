@@ -25,6 +25,7 @@
 require_once(dirname(__FILE__).'/../../config.php');
 require_once(dirname(__FILE__).'/locallib.php');
 
+
 $PAGE->requires->js('/mod/presence/js/presence.js');
 $PAGE->requires->js('/mod/presence/js/evaluation.js');
 
@@ -60,6 +61,7 @@ switch ($presence->pageparams->action) {
         $usersvalues = array_values($evaluationdata->users);
         $templatecontext = (object)[
             'session' => $evaluationdata->session,
+            'personalityremark_hint' => get_string('personalityremark_hint_'.random_int(0,17), 'mod_presence'),
             'durationoptions' => $evaluationdata->session->durationoptions,
             'urlfinish' => $evaluationdata->urlfinish,
             'urlautoadd' => $evaluationdata->urlautoadd,
@@ -111,6 +113,7 @@ switch ($presence->pageparams->action) {
         echo $OUTPUT->render_from_template('mod_presence/evaluation', $templatecontext);
        break;
 }
+
 
 echo $output->footer();
 

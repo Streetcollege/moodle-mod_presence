@@ -63,6 +63,9 @@ class calendar
         }
     }
 
+
+
+
     public function get_rooms() {
         return $this->rooms;
     }
