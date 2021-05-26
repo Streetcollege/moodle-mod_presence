@@ -258,6 +258,7 @@ class mod_presence_external extends external_api {
         $sess->subnet = $presence->subnet;
         $sess->statusset = 0;
         $sess->groupid = $groupid;
+        $sess->teacher = $USER->id;
 
         $sessionid = $presence->add_session($sess);
         return array('sessionid' => $sessionid);
@@ -603,6 +604,8 @@ class mod_presence_external extends external_api {
         global $DB, $USER;
 
         $session = $DB->get_record('presence_sessions', array('id' => $sessionid), '*', MUST_EXIST);
+        $presence = $DB->get_record('presence', array('id' => $session->presenceid), '*', MUST_EXIST);
+        $course = $DB->get_record('course', array('id'=>$presence->course));
         $cm = get_coursemodule_from_instance('presence', $session->presenceid, 0, false, MUST_EXIST);
         $context = context_module::instance($cm->id);
         self::validate_context($context);
@@ -629,6 +632,13 @@ class mod_presence_external extends external_api {
         if ($booking && $book <= 0) {
             presence_delete_calendar_event_booking($booking);
             $DB->delete_records('presence_bookings', ['id' => $booking->id, 'userid' => $userid]);
+            if ($session->teacher) {
+                $subject = 'Absage: '.$course->shortname.', '.\local_streetcollege\tools::format_datetime_short($session->sessdate).', '.fullname($USER);
+                $msg = fullname($USER).' hat Teilnahme an '.$course->fullname.' am '
+                    .\local_streetcollege\tools::format_datetime_short($session->sessdate).' abgesagt';
+                \local_streetcollege\messages::notify($session->teacher, $subject,
+                    $msg, null);
+            }
             $bookedspots--;
             $result = 0;
         } else if (!$booking && $book >= 0) {
@@ -641,6 +651,13 @@ class mod_presence_external extends external_api {
                     array('sessionid' => $sessionid, 'userid' => $userid, 'caleventid' => 0));
                 $bookedspots++;
                 presence_create_calendar_event_booking(self::get_booking($bookingid));
+                if ($session->teacher) {
+                    $subject = 'Zusage: '.$course->shortname.', '.\local_streetcollege\tools::format_datetime_short($session->sessdate).', '.fullname($USER);
+                    $msg = fullname($USER).' hat Teilnahme an '.$course->fullname.' am '
+                        .\local_streetcollege\tools::format_datetime_short($session->sessdate).' zugesagt';
+                    \local_streetcollege\messages::notify($session->teacher, $subject,
+                        $msg, null);
+                }
                 $result = 1;
             }
         }

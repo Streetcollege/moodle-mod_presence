@@ -173,6 +173,22 @@ function xmldb_presence_upgrade($oldversion=0) {
     }
 
 
+    if ($oldversion < 2021052602) {
+
+        // Define field teacher to be added to presence_sessions.
+        $table = new xmldb_table('presence_sessions');
+        $field = new xmldb_field('teacher', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'lastevaluatedby');
+
+        // Conditionally launch add field teacher.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Presence savepoint reached.
+        upgrade_mod_savepoint(true, 2021052602, 'presence');
+    }
+
+
 
     return true;
 }

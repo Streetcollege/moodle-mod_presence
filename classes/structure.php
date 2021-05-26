@@ -351,11 +351,12 @@ class mod_presence_structure {
      * @return int $sessionid
      */
     public function add_session($sess) : int {
-        global $DB;
+        global $DB, $USER;
         $sess->presenceid = $this->id;
         $sess->calendarevent = 1;
         $sess->caleventid = 0;
         $sess->descriptionformat = 0;
+        $sess->teacher = $USER->id;
         $sess->id = $DB->insert_record('presence_sessions', $sess);
 //        $description = file_save_draft_area_files($sess->descriptionitemid,
 //            $this->context->id, 'mod_presence', 'session', $sess->id,
