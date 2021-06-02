@@ -241,6 +241,7 @@ $string['personalityremark_hint_13'] = 'If he/she were a nuisance, what would he
 $string['personalityremark_hint_14'] = 'Why does he/she achieve his/her goal in the next 10 years?';
 $string['personalityremark_hint_15'] = 'What tasks would you give him/her?';
 $string['personalityremark_hint_16'] = 'What did you learn from him/her?';
+$string['personalityremark_info'] = 'More information about the personality remark';
 $string['pluginname'] = 'Presence';
 $string['pluginadministration'] = 'Presence administration';
 $string['presence_course'] = 'Attendet sessions';

@@ -120,6 +120,9 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="birthday" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="birthplace" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="title" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="strengths" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="List of strengths of this user"/>
         <FIELD NAME="statusremark" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="attendant" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A contact person for this user"/>

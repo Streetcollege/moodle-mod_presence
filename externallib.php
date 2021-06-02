@@ -610,7 +610,11 @@ class mod_presence_external extends external_api {
         $context = context_module::instance($cm->id);
         self::validate_context($context);
 
+//        $role = $DB->get_record('role', array('shortname' => 'editingteacher'));
+//        $teachers = get_role_users($role->id, $context);
+
         $unbook = false;
+
         if ($book == -2 || $userid != $USER->id) {
             require_capability('mod/presence:takepresences', $context);
             $unbook = true;

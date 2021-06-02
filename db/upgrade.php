@@ -189,6 +189,39 @@ function xmldb_presence_upgrade($oldversion=0) {
     }
 
 
+    if ($oldversion < 2021060201) {
+
+        // Define field birthday to be added to presence_user.
+        $table = new xmldb_table('presence_user');
+        $field = new xmldb_field('birthday', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'timecreated');
+
+        // Conditionally launch add field birthplace.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field birthplace to be added to presence_user.
+        $table = new xmldb_table('presence_user');
+        $field = new xmldb_field('birthplace', XMLDB_TYPE_TEXT, null, null, null, null, null, 'birthday');
+
+        // Conditionally launch add field birthplace.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field title to be added to presence_user.
+        $table = new xmldb_table('presence_user');
+        $field = new xmldb_field('title', XMLDB_TYPE_CHAR, '64', null, null, null, null, 'birthplace');
+
+        // Conditionally launch add field birthplace.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Presence savepoint reached.
+        upgrade_mod_savepoint(true, 2021060201, 'presence');
+    }
+
 
     return true;
 }

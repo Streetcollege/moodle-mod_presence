@@ -179,6 +179,7 @@ $string['personalityremark_hint_13'] = 'Wenn er/sie ein Ärgernis wäre, was wä
 $string['personalityremark_hint_14'] = 'Warum erreicht er/sie sein/ihr Ziel in den nächsten 10 Jahren?';
 $string['personalityremark_hint_15'] = 'Welche Aufgaben würdest du ihm/ihr übertragen?';
 $string['personalityremark_hint_16'] = 'Was hast du von ihm/ihr gelernt?';
+$string['personalityremark_info'] = 'Mehr Informationen zur Persönlichkeitsnotiz';
 
 $string['pluginname'] = 'Präsenz';
 $string['pluginadministration'] = 'Präsenz Administration';
