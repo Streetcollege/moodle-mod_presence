@@ -193,7 +193,7 @@ function xmldb_presence_upgrade($oldversion=0) {
 
         // Define field birthday to be added to presence_user.
         $table = new xmldb_table('presence_user');
-        $field = new xmldb_field('birthday', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'timecreated');
+        $field = new xmldb_field('birthday', XMLDB_TYPE_CHAR, '10', null, null, null, null, 'timecreated');
 
         // Conditionally launch add field birthplace.
         if (!$dbman->field_exists($table, $field)) {
@@ -221,6 +221,39 @@ function xmldb_presence_upgrade($oldversion=0) {
         // Presence savepoint reached.
         upgrade_mod_savepoint(true, 2021060201, 'presence');
     }
+
+    if ($oldversion < 2021060203) {
+
+        // Define field nextexam to be added to presence_user.
+        $table = new xmldb_table('presence_user');
+        $field = new xmldb_field('nextexam', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'title');
+
+        // Conditionally launch add field nextexam.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Presence savepoint reached.
+        upgrade_mod_savepoint(true, 2021060203, 'presence');
+    }
+
+
+    if ($oldversion < 2021060601) {
+
+        // Define field attendantlab to be added to presence_user.
+        $table = new xmldb_table('presence_user');
+        $field = new xmldb_field('attendantlab', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'attendant');
+
+        // Conditionally launch add field attendantlab.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Presence savepoint reached.
+        upgrade_mod_savepoint(true, 2021060601, 'presence');
+    }
+
+
 
 
     return true;

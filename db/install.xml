@@ -120,12 +120,13 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="birthday" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="birthday" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="birthplace" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="title" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="strengths" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="List of strengths of this user"/>
         <FIELD NAME="statusremark" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="attendant" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A contact person for this user"/>
+        <FIELD NAME="attendant" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Supervisor in general"/>
+        <FIELD NAME="attendantlab" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Supervisor for Lernlabor"/>
         <FIELD NAME="realname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Real name of this user"/>
         <FIELD NAME="contactperson" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A contact person to this user"/>
         <FIELD NAME="agegroup" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Age group of this user"/>
@@ -138,6 +139,7 @@
         <FIELD NAME="degreetarget" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Degree user wants to achieve"/>
         <FIELD NAME="checklistchecks" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Checked items on checklist"/>
         <FIELD NAME="checklistitems" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Custom items for users checklist"/>
+        <FIELD NAME="nextexam" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="id of planned exam from streetcollege_examplan::id"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -148,5 +150,9 @@
         <KEY NAME="usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
+
+
+
+
   </TABLES>
 </XMLDB>
