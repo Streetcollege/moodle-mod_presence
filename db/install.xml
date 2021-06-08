@@ -125,8 +125,8 @@
         <FIELD NAME="title" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="strengths" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="List of strengths of this user"/>
         <FIELD NAME="statusremark" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="attendant" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Supervisor in general"/>
-        <FIELD NAME="attendantlab" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Supervisor for Lernlabor"/>
+        <FIELD NAME="supervisor" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Supervisor in general"/>
+        <FIELD NAME="supervisorlab" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Supervisor for Lernlabor"/>
         <FIELD NAME="realname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Real name of this user"/>
         <FIELD NAME="contactperson" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A contact person to this user"/>
         <FIELD NAME="agegroup" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Age group of this user"/>

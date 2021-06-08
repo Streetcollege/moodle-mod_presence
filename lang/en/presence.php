@@ -322,6 +322,7 @@ $string['sessionexist'] = 'Session not added (already exists)!';
 $string['sessionfulltitle'] = 'Session full';
 $string['sessionfull'] = 'This session is already fully booked. There are no more spots available.';
 $string['sessiongenerated'] = 'One session was successfully generated';
+$string['session_cancelled'] = 'Cancelled';
 $string['sessions'] = 'Sessions';
 $string['sessionsandresults'] = 'Sessions and results';
 $string['sessionscompleted'] = 'Taken sessions';

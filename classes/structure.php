@@ -26,6 +26,9 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG; // This class is included inside existing functions.
 require_once(dirname(__FILE__) . '/calendar_helpers.php');
 require_once($CFG->libdir .'/filelib.php');
+require_once($CFG->dirroot.'/local/streetcollege/classes/messages.php');
+require_once($CFG->dirroot.'/local/streetcollege/classes/users.php');
+require_once($CFG->dirroot.'/local/streetcollege/classes/tools.php');
 
 /**
  * Main class with all presence related info.
@@ -820,6 +823,15 @@ class mod_presence_structure {
     }
 
     /**
+     *  Get course for session
+     */
+    public function get_presence_course($presenceid) {
+        global $DB;
+        $courseid = $DB->get_field('presence', 'course', ['id' => $presenceid]);
+        return get_course($courseid);
+    }
+
+    /**
      * Get session info.
      * @param int $sessionid
      * @return mixed
@@ -1024,6 +1036,27 @@ class mod_presence_structure {
      */
     public function delete_sessions($sessionsids) {
         global $DB;
+
+        // notify students XXX
+        $sessionsinfo = $this->get_sessions_info($sessionsids);
+        echo '<h1>DELETE</h1>';
+        foreach ($sessionsinfo as $session) {
+            echo '<pre class="mt-4">'.print_r($session, true).'</pre>';
+            $users = $this->get_users_session($session->id);
+            $course = $this->get_presence_course($session->presenceid);
+            $text = 'some text';
+            echo '<pre class="mt-4">'.print_r($session, true).' course'.var_dump($course,true).'</pre>';
+            foreach ($users as $user) {
+                $user = \local_streetcollege\users::get_user_simple($user->id);
+                $user->lang = $user->lang == 'de' ? 'de' : 'en';
+                $subject = get_string('session_cancelled', 'mod_presence').': '
+                    . \local_streetcollege\tools::format_datetime_short($session->sessdate).' '
+                    .$course->fullname. ($session->description ? ', '.$session->description : '');
+                echo '<hr /><pre>user: '.print_r($user, true).'</pre>';
+                \local_streetcollege\messages::notify($user->id, $subject, $text);
+            }
+        }
+
         if (presence_existing_calendar_events_ids($sessionsids)) {
             presence_delete_calendar_events($sessionsids);
         }
@@ -1036,6 +1069,7 @@ class mod_presence_structure {
         $caleventids = array_map(function($booking) {
             return $booking->caleventid;
         }, $bookings);
+
         $DB->delete_records_list('presence_bookings', 'sessionid', $sessionsids);
         $DB->delete_records_list('event', 'id', $caleventids);
 

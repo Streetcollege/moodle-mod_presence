@@ -246,6 +246,7 @@ $string['sessionfulltitle'] = 'Lerneinheit ausgebucht';
 $string['sessionfull'] = 'Diese Lerneinheit ist voll ausgebucht. Weitere Teilnehmer sind nicht möglich.';
 $string['sessiongenerated'] = 'Eine Lerneinheit wurde erfolgreich erstellt.';
 $string['sessionnoneinspan'] = 'Keine Lerneinheiten in diesem Zeitraum';
+$string['session_cancelled'] = 'Abgesagt';
 $string['sessions'] = 'Lerneinheiten';
 $string['sessionscompleted'] = 'Lerneinheit evaluiert';
 $string['sessionsgenerated'] = '{$a} Lerneinheiten wurden erfolgreich erstellt';
