@@ -1039,20 +1039,16 @@ class mod_presence_structure {
 
         // notify students XXX
         $sessionsinfo = $this->get_sessions_info($sessionsids);
-        echo '<h1>DELETE</h1>';
         foreach ($sessionsinfo as $session) {
-            echo '<pre class="mt-4">'.print_r($session, true).'</pre>';
             $users = $this->get_users_session($session->id);
             $course = $this->get_presence_course($session->presenceid);
             $text = 'some text';
-            echo '<pre class="mt-4">'.print_r($session, true).' course'.var_dump($course,true).'</pre>';
             foreach ($users as $user) {
                 $user = \local_streetcollege\users::get_user_simple($user->id);
                 $user->lang = $user->lang == 'de' ? 'de' : 'en';
                 $subject = get_string('session_cancelled', 'mod_presence').': '
                     . \local_streetcollege\tools::format_datetime_short($session->sessdate).' '
                     .$course->fullname. ($session->description ? ', '.$session->description : '');
-                echo '<hr /><pre>user: '.print_r($user, true).'</pre>';
                 \local_streetcollege\messages::notify($user->id, $subject, $text);
             }
         }

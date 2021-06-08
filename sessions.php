@@ -118,7 +118,7 @@ switch ($presence->pageparams->action) {
                 $sessionids = [$sessionid, ];
             }
             $presence->delete_sessions($sessionids);
-            // redirect($presence->url_manage(), get_string('sessionsdeleted', 'presence'));
+             redirect($presence->url_manage(), get_string('sessionsdeleted', 'presence'));
         }
         presence_print_header();
         $sessinfo = $presence->get_session_info($sessionid);
