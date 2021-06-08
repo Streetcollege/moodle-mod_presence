@@ -431,6 +431,7 @@ class mod_presence_structure {
         }
 
         foreach ($sessions as $session) {
+            $sessionold = clone $session;
             $session->sessdate = $cal->change_timestamp_time($session->sessdate, $sesstarttime);
             $session->duration = $duration;
             $session->description = $formdata->sdescription;
@@ -439,6 +440,43 @@ class mod_presence_structure {
             $session->maxattendants = $formdata->maxattendants;
             $session->location   = $room->name;
             $session->timemodified = time();
+
+            if ($sessionold->sessdate != $session->sessdate
+            || $sessionold->roomid != $session->roomid
+            || $sessionold->description != $session->description) {
+                $users = $this->get_users_session($session->id);
+                $course = $this->get_presence_course($session->presenceid);
+                foreach ($users as $user) {
+                    $user = \local_streetcollege\users::get_user_simple($user->id);
+                    $user->lang = $user->lang == 'de' ? 'de' : 'en';
+
+                    if ($sessionold->sessdate != $session->sessdate) {
+                        $subject = get_string('session_moved', 'mod_presence').': '
+                            . \local_streetcollege\tools::format_datetime_short($sessionold->sessdate).' → '
+                            . \local_streetcollege\tools::format_datetime_short($session->sessdate).' ('
+                            .$course->fullname. ($session->description ? ', '.$session->description : '').')';
+                        \local_streetcollege\messages::notify($user->id, $subject, '');
+                    }
+
+                    if ($sessionold->roomid != $session->roomid) {
+                        $subject = get_string('session_moved', 'mod_presence').': '
+                            . $this->get_room_name($sessionold->roomid).' → '
+                            .$this->get_room_name($session->roomid).' ('
+                            .$course->fullname. ($session->description ? ', '.$session->description : '').')';
+                        \local_streetcollege\messages::notify($user->id, $subject, '');
+                    }
+
+                    if ($sessionold->description != $session->description) {
+                        $subject = get_string('session_renamed', 'mod_presence').': '
+                            . $sessionold->description.' → '
+                            . $session->description.' ('
+                            .$course->fullname.')';
+                        \local_streetcollege\messages::notify($user->id, $subject, '');
+                    }
+                }
+
+            }
+
             $DB->update_record('presence_sessions', $session);
             if (empty($session->caleventid)) {
                 throw new coding_exception("caleventid of sessions shouldn't be empty!");
@@ -457,6 +495,7 @@ class mod_presence_structure {
         }
 
     }
+
 
 
 
@@ -1037,19 +1076,18 @@ class mod_presence_structure {
     public function delete_sessions($sessionsids) {
         global $DB;
 
-        // notify students XXX
+        // notify students
         $sessionsinfo = $this->get_sessions_info($sessionsids);
         foreach ($sessionsinfo as $session) {
             $users = $this->get_users_session($session->id);
             $course = $this->get_presence_course($session->presenceid);
-            $text = 'some text';
             foreach ($users as $user) {
                 $user = \local_streetcollege\users::get_user_simple($user->id);
                 $user->lang = $user->lang == 'de' ? 'de' : 'en';
                 $subject = get_string('session_cancelled', 'mod_presence').': '
                     . \local_streetcollege\tools::format_datetime_short($session->sessdate).' '
                     .$course->fullname. ($session->description ? ', '.$session->description : '');
-                \local_streetcollege\messages::notify($user->id, $subject, $text);
+                \local_streetcollege\messages::notify($user->id, $subject, '');
             }
         }
 
