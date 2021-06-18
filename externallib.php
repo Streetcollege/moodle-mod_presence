@@ -480,6 +480,59 @@ class mod_presence_external extends external_api {
     }
 
     /**
+     * Get attendants params.
+     *
+     * @return external_function_parameters
+     */
+    public static function get_attendants_parameters() {
+        return new external_function_parameters (
+            array('sessionid' => new external_value(PARAM_INT, 'session id')));
+    }
+
+    /**
+     * Get attendants of session.
+     *
+     * @param int $sessionid
+     * @return mixed
+     */
+    public static function get_attendants($sessionid) {
+        global $DB;
+
+        $res = $DB->get_records_sql('SELECT u.id userid, u.firstname, u.lastname
+            FROM {presence_bookings} pb
+            LEFT JOIN {user} u ON pb.userid = u.id
+            WHERE pb.sessionid = 95');
+        foreach($res as $user) {
+            $user->fullname = trim($user->firstname.' '.$user->lastname);
+        }
+        return [
+            'errormessage'=>'blah',
+            'success' => true,
+            'results' => $res,
+        ];
+    }
+
+    /**
+     * Show return values of get_attendants.
+     *
+     * @return external_single_structure
+     */
+    public static function get_attendants_returns() {
+        return new external_function_parameters([
+            'errormessage' => new external_value(PARAM_TEXT, 'error details if successs == false'),
+            'success' => new external_value(PARAM_BOOL, '1: successfull, 0: not'),
+            'results' => new external_multiple_structure(
+                new external_single_structure([
+                    'userid' => new external_value(PARAM_INT, 'user id'),
+                    'fullname' => new external_value(PARAM_TEXT, 'fullname'),
+                    'firstname' => new external_value(PARAM_TEXT, 'firstname'),
+                    'lastname' => new external_value(PARAM_TEXT, 'lastname'),
+                ], 'list of results', VALUE_REQUIRED)
+            ),
+        ]);
+    }
+
+    /**
      * Update user status params.
      *
      * @return external_function_parameters
@@ -615,6 +668,9 @@ class mod_presence_external extends external_api {
 
         $unbook = false;
 
+        if (!$userid) {
+            $userid = $USER->id;
+        }
         if ($book == -2 || $userid != $USER->id) {
             require_capability('mod/presence:takepresences', $context);
             $unbook = true;

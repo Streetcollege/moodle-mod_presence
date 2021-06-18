@@ -66,6 +66,16 @@ $functions = [
         'classpath'   => 'mod/presence/externallib.php',
         'description' => 'Method that retrieves the session data',
         'type'        => 'read',
+        'ajax'        => true,
+    ),
+
+    'mod_presence_get_attendants' => array(
+        'classname'   => 'mod_presence_external',
+        'methodname'  => 'get_attendants',
+        'classpath'   => 'mod/presence/externallib.php',
+        'description' => 'Get attendants for session',
+        'type'        => 'read',
+        'ajax'        => true,
     ),
 
     'mod_presence_update_user_status' => array(
@@ -176,6 +186,7 @@ $services = [
             'mod_presence_remove_session',
             'mod_presence_get_courses_with_today_sessions',
             'mod_presence_get_session',
+            'mod_presence_get_attendants',
             'mod_presence_update_user_status',
             'mod_presence_get_room_capacity',
             'mod_presence_book_session',

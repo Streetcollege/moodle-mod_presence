@@ -58,6 +58,68 @@ class presence
     }
 
     /**
+     * Get sessions for presence
+     * @param $params - ['presenceid', 'timefrom', 'timestamp']
+     */
+    public static function get_sessions($presenceid, $params) {
+        global $DB, $USER;
+        $filters = [];
+        if($presenceid) {
+            array_push($filters, 'ps.presenceid = '.intval($presenceid));
+        }
+        if(isset($params['timefrom'])) {
+            array_push($filters, 'ps.sessdate >= '.intval($params['timefrom']));
+        }
+        if(isset($params['timeto'])) {
+            array_push($filters, 'ps.sessdate <= '.intval($params['timeto']));
+        }
+        $sql = 'SELECT ps.*, pr.name roomname, c.fullname coursename, cc.name categoryname, pb.id booked '
+            .', (SELECT COUNT(*) FROM mdl_presence_bookings WHERE sessionid = ps.id) attendants '
+            .'FROM {presence_sessions} ps '
+            .'LEFT JOIN {presence_rooms} pr ON ps.roomid = pr.id '
+            .'LEFT JOIN {presence} p ON ps.presenceid = p.id '
+            .'LEFT JOIN {course} c ON c.id = p.course '
+            .'LEFT JOIN {course_categories} cc ON c.category = cc.id '
+            .'LEFT JOIN {presence_bookings} pb ON (ps.id = pb.sessionid AND pb.userid = '.intval($USER->id).') '
+            .'WHERE '
+            . (sizeof($filters) ? implode(' AND ', $filters) : '')
+            .' ORDER BY ps.sessdate ASC';
+        $sessions = $DB->get_records_sql($sql);
+        return $sessions;
+    }
+
+    /**
+     * Get sessions for presence
+     * @param $userid - ['presenceid', 'timefrom', 'timestamp']
+     */
+    public static function get_bookings($userid, $params) {
+        global $DB;
+        $filters = [];
+        if($presenceid) {
+            array_push($filters, 'ps.presenceid = '.intval($presenceid));
+        }
+        if(isset($params['timefrom'])) {
+            array_push($filters, 'ps.sessdate >= '.intval($params['timefrom']));
+        }
+        if(isset($params['timeto'])) {
+            array_push($filters, 'ps.sessdate <= '.intval($params['timeto']));
+        }
+        $sql = 'SELECT ps.*, pr.name roomname, c.fullname coursename, cc.name categoryname, pb.id booked '
+            .', (SELECT COUNT(*) FROM mdl_presence_bookings WHERE sessionid = ps.id) attendants '
+            .'FROM {presence_sessions} ps '
+            .'LEFT JOIN {presence_rooms} pr ON ps.roomid = pr.id '
+            .'LEFT JOIN {presence} p ON ps.presenceid = p.id '
+            .'LEFT JOIN {course} c ON c.id = p.course '
+            .'LEFT JOIN {course_categories} cc ON c.category = cc.id '
+            .'LEFT JOIN {presence_bookings} pb ON (ps.id = pb.sessionid AND pb.userid = '.intval($userid).') '
+            .'WHERE pb.userid='.intval($userid).' '
+            .(sizeof($filters) ? ' AND '.implode(' AND ', $filters) : '').' '
+            .' ORDER BY ps.sessdate ASC';
+        $sessions = $DB->get_records_sql($sql);
+        return $sessions;
+    }
+
+    /**
      * Store a guidance remark by creating a session and evaluating it with a single student
      * @param $courseid
      * @param $studentid
