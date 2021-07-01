@@ -298,6 +298,7 @@ $string['submit'] = 'Speichern';
 $string['summary'] = 'Zusammenfassung';
 $string['tactions'] = 'Aktion';
 $string['tcreated'] = 'Erstellt';
+$string['teacherselect'] = 'Dozent*in';
 $string['thiscourse'] = 'Dieser Kurs';
 $string['time'] = 'Zeit';
 $string['to'] = 'bis:';

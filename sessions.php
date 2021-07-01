@@ -53,8 +53,16 @@ switch ($presence->pageparams->action) {
             redirect($presence->url_manage());
         }
 
+
+
         if ($formdata = $mform->get_data()) {
             $formdata->maxattendants = $pageparams->maxattendants;
+            if (!$formdata->teacherid) {
+                $teachers = $presence->get_teachers();
+                if (isset($teachers[$USER->id])) {
+                    $formdata->teacherid = $USER->id;
+                }
+            }
             $sessions = presence_construct_sessions_data_for_add($formdata, $presence);
             $presence->add_sessions($sessions);
             if (count($sessions) == 1) {
@@ -75,6 +83,7 @@ switch ($presence->pageparams->action) {
         $PAGE->requires->js('/mod/presence/js/rooms.js');
         $sessionid = required_param('sessionid', PARAM_INT);
         $url = $presence->url_sessions(array('action' => mod_presence_sessions_page_params::ACTION_UPDATE, 'sessionid' => $sessionid));
+
         $formparams['sessionid'] = $sessionid;
         $mform = new \mod_presence\form\updatesession($url, $formparams);
 

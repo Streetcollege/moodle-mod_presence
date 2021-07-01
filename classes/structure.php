@@ -213,10 +213,11 @@ class mod_presence_structure {
         $where = implode(" AND ", $where);
 
         $sessions = $DB->get_records_sql(
-            "SELECT atts.*, attr.name as roomname,
+            "SELECT atts.*, attr.name as roomname, u.firstname as teacherfirstname, u.lastname as teacherlastname, 
                         (SELECT COUNT(*) FROM {presence_bookings} AS attb WHERE atts.id = attb.sessionid) as bookings
                    FROM {presence_sessions} AS atts
               LEFT JOIN {presence_rooms} AS attr ON atts.roomid = attr.id
+              LEFT JOIN {user} AS u ON atts.teacher = u.id
                   WHERE $where
                ORDER BY sessdate ASC", [
             'aid'       => $this->id,
@@ -245,6 +246,8 @@ class mod_presence_structure {
                 $sess->description = file_rewrite_pluginfile_urls($sess->description,
                     'pluginfile.php', $this->context->id, 'mod_presence', 'session', $sess->id);
             }
+
+            $sess->teachername = trim($sess->teacherfirstname.' '.$sess->teacherlastname);
 
             $sess->maxattendants = intval($sess->maxattendants);
             $sess->timefrom = userdate($sess->sessdate, get_string('strftimetime', 'langconfig'));
@@ -359,7 +362,8 @@ class mod_presence_structure {
         $sess->calendarevent = 1;
         $sess->caleventid = 0;
         $sess->descriptionformat = 0;
-        $sess->teacher = $USER->id;
+
+        $sess->teacher = intval($sess->teacher);
         $sess->id = $DB->insert_record('presence_sessions', $sess);
 //        $description = file_save_draft_area_files($sess->descriptionitemid,
 //            $this->context->id, 'mod_presence', 'session', $sess->id,
@@ -436,6 +440,7 @@ class mod_presence_structure {
             $session->duration = $duration;
             $session->description = $formdata->sdescription;
             $session->calendarevent = 1;
+            $session->teacher = intval($formdata->teacherid);
             $session->roomid = $room->id;
             $session->maxattendants = $formdata->maxattendants;
             $session->location   = $room->name;
@@ -706,6 +711,18 @@ class mod_presence_structure {
 
         return $users;
     }
+
+    /**
+     * Get list of teachers available for this presence
+     */
+    public function get_teachers() {
+        global $DB;
+        $role = $DB->get_record('role', array('shortname' => 'editingteacher'));
+        $context = context_course::instance($this->course->id);
+        $teachers = get_role_users($role->id, $context);
+        return $teachers;
+    }
+
 
     /**
      * Get users that attendet any session of this presence in recent times.
@@ -1013,10 +1030,11 @@ class mod_presence_structure {
         $id = $DB->sql_concat(':value', 'ats.id');
 
         $sql = "SELECT $id, ats.id, ats.sessdate, ats.duration, ats.description, 
-                       ats.roomid, ats.maxattendants
+                       ats.roomid, ats.maxattendants, u.firstname teacherfirstname, u.lastname teacherlastname
                   FROM {presence_sessions} ats
             RIGHT JOIN {presence_evaluations} al
                     ON ats.id = al.sessionid AND al.studentid = :uid
+             LEFT JOIN {user} u ON u.id = ats.teacher 
                  WHERE $where
               ORDER BY ats.sessdate ASC";
 
@@ -1037,7 +1055,7 @@ class mod_presence_structure {
         } else {
             $where = "ats.presenceid = :aid  AND ats.sessdate >= :csdate";
         }
-        $sql = "SELECT $id, ats.id, ats.sessdate, ats.duration, ats.description,
+        $sql = "SELECT $id, ats.id, ats.sessdate, ats.duration, ats.description, u.firstname teacherfirstname, u.lastname teacherlastname,
                        ats.roomid, ats.maxattendants, atr.name AS roomname, atr.description AS roomdescription, atr.bookable,
                        (SELECT COUNT(*) FROM {presence_bookings} as atb WHERE atb.sessionid = ats.id) as bookedspots
                   FROM {presence_sessions} ats
@@ -1045,6 +1063,7 @@ class mod_presence_structure {
                     ON ats.id = al.sessionid AND al.studentid = :uid
              LEFT JOIN {presence_rooms} atr
                     ON ats.roomid = atr.id
+            LEFT JOIN {user} u ON u.id = ats.teacher 
                  WHERE $where
               ORDER BY ats.sessdate ASC";
 
@@ -1052,6 +1071,7 @@ class mod_presence_structure {
         $sessions = array_merge($sessions, $DB->get_records_sql($sql, $params));
 
         foreach ($sessions as $sess) {
+            $sess->teachername = trim($sess->teacherfirstname.' '.$sess->teacherlastname);
             if (empty($sess->description)) {
                 $sess->description = get_string('nodescription', 'presence');
             } else {

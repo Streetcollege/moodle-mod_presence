@@ -61,7 +61,7 @@ switch ($presence->pageparams->action) {
         $usersvalues = array_values($evaluationdata->users);
         $templatecontext = (object)[
             'session' => $evaluationdata->session,
-            'personalityremark_hint' => get_string('personalityremark_hint_'.random_int(0,17), 'mod_presence'),
+            'personalityremark_hint' => get_string('personalityremark_hint_'.random_int(0,16), 'mod_presence'),
             'durationoptions' => $evaluationdata->session->durationoptions,
             'urlfinish' => $evaluationdata->urlfinish,
             'urlautoadd' => $evaluationdata->urlautoadd,

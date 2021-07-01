@@ -89,6 +89,7 @@ class addsession extends moodleform {
         ['startyear' => date('Y'), 'stopyear' => date('Y') + 1]);
         $mform->hideIf('sessionenddate', 'addmultiply', 'notchecked');
 
+        presence_form_session_teacher($mform, $presence);
 
         $maxfiles = 0; // intval(get_config('enableunlimitedfiles', 'mod_presence')) ? EDITOR_UNLIMITED_FILES : 0;
         $mform->addElement('textarea', 'sdescription', get_string('description', 'presence'), array('rows' => 2, 'columns' => 80),
@@ -101,6 +102,10 @@ class addsession extends moodleform {
 
 
         $this->add_action_buttons(true, get_string('add', 'presence'));
+
+        $mform->setDefaults([
+            'teacherid' => 22,
+        ]);
     }
 
     /**

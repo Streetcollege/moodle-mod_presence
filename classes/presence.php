@@ -74,7 +74,7 @@ class presence
             array_push($filters, 'ps.sessdate <= '.intval($params['timeto']));
         }
         $sql = 'SELECT ps.*, pr.name roomname, c.fullname coursename, cc.name categoryname, pb.id booked '
-            .', (SELECT COUNT(*) FROM mdl_presence_bookings WHERE sessionid = ps.id) attendants '
+            .', (SELECT COUNT(*) FROM {presence_bookings} WHERE sessionid = ps.id) attendants '
             .'FROM {presence_sessions} ps '
             .'LEFT JOIN {presence_rooms} pr ON ps.roomid = pr.id '
             .'LEFT JOIN {presence} p ON ps.presenceid = p.id '
@@ -83,8 +83,16 @@ class presence
             .'LEFT JOIN {presence_bookings} pb ON (ps.id = pb.sessionid AND pb.userid = '.intval($USER->id).') '
             .'WHERE '
             . (sizeof($filters) ? implode(' AND ', $filters) : '')
-            .' ORDER BY ps.sessdate ASC';
+            .' ORDER BY ps.sessdate ASC '
+            . (isset($params['maxresults']) ? 'LIMIT '.intval($params['maxresults']) : '');
         $sessions = $DB->get_records_sql($sql);
+        //
+        if (isset($params['minresults']) && isset($params['timeto']) && sizeof($sessions) < $params['minresults']) {
+            unset ($params['timeto']);
+            $params['maxresults'] = $params['minresults'];
+            unset($params['minresults']);
+            return self::get_sessions($presenceid, $params);
+        }
         return $sessions;
     }
 
@@ -105,7 +113,7 @@ class presence
             array_push($filters, 'ps.sessdate <= '.intval($params['timeto']));
         }
         $sql = 'SELECT ps.*, pr.name roomname, c.fullname coursename, cc.name categoryname, pb.id booked '
-            .', (SELECT COUNT(*) FROM mdl_presence_bookings WHERE sessionid = ps.id) attendants '
+            .', (SELECT COUNT(*) FROM {presence_bookings} WHERE sessionid = ps.id) attendants '
             .'FROM {presence_sessions} ps '
             .'LEFT JOIN {presence_rooms} pr ON ps.roomid = pr.id '
             .'LEFT JOIN {presence} p ON ps.presenceid = p.id '

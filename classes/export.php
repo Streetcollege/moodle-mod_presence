@@ -129,12 +129,16 @@ class export_sws {
 class export_active_students {
 
     public $id = 'mod_presence/active_students';
-    public $name = "Atkive Studenten";
+    public $name = "Studienbericht";
     public $listed = true;
+    private $test = 17;
+
 
 
     public function write($spreadsheet, $params) {
         global $DB;
+
+        define('SC_LONGTERMTHRESHOLD', 8);
 
         $datefrom = $params['datefrom'];
         $dateto = $params['dateto'];
@@ -142,29 +146,80 @@ class export_active_students {
         $timeto = strtotime($dateto) + (24 * 3600);
 
         $records = $DB->get_records_sql('
-            SELECT pe.studentid, u.idnumber, COUNT(*) as presences, SUM(pe.duration) / 3600 hours
+            SELECT pe.studentid, u.idnumber, u.firstname, u.lastname, COUNT(*) as presences, SUM(pe.duration) / 3600 hours
             FROM {presence_evaluations} pe
             LEFT JOIN {user} u ON pe.studentid = u.id
             LEFT JOIN {presence_sessions} ps ON pe.sessionid = ps.id
             WHERE pe.duration > 0
             AND ps.sessdate >= :timefrom
             AND ps.sessdate < :timeto
-            GROUP BY pe.studentid, u.idnumber
-            ORDER BY pe.studentid ASC
+            AND ps.description <> \'Lernbegleitung\'
+            GROUP BY pe.studentid, u.idnumber, u.firstname, u.lastname
+            ORDER BY u.idnumber ASC
         ', [
             'timefrom' => $timefrom,
             'timeto' => $timeto,
         ]);
 
-        $longterm = 0;
-        $shortterm = 0;
-        $longtermthreshold = 8;
+
+        $stats = [
+            'all' => [
+                'title' => 'Gesamt',
+                'presences' => 0,
+                'hours' => 0,
+                'students' => 0,
+                'linespace' => 1,
+            ],
+            'long' => [
+                'title' => 'Langzeitstudenten ('.SC_LONGTERMTHRESHOLD.'+ Anw.)',
+                'presences' => 0,
+                'hours' => 0,
+                'students' => 0,
+                'linespace' => 0,
+            ],
+            'short' => [
+                'title' => 'Kurzzeitstudenten (<'.SC_LONGTERMTHRESHOLD.' Anw.)',
+                'presences' => 0,
+                'hours' => 0,
+                'students' => 0,
+                'linespace' => 1,
+            ],
+            'students' => [
+                'title' => 'Studierende',
+                'presences' => 0,
+                'hours' => 0,
+                'students' => 0,
+                'linespace' => 0,
+
+            ],
+            'teachers' => [
+                'title' => 'Lernende Dozenten',
+                'presences' => 0,
+                'hours' => 0,
+                'students' => 0,
+                'linespace' => 1,
+            ],
+        ];
+
+        function recordToStats($n, $record, &$stats) {
+            $stats[$n]['students']++;
+            $stats[$n]['presences'] += $record->presences;
+            $stats[$n]['hours'] += $record->hours;
+        }
+
         foreach($records as $record) {
-            if ($record->presences >= $longtermthreshold) {
-                $longterm++;
+            $record->idnumber = $record->idnumber ? $record->idnumber : 'SC-0'.$record->studentid;
+            if ($record->presences >= SC_LONGTERMTHRESHOLD) {
+                recordToStats('long', $record, $stats);
             } else {
-                $shortterm++;
+                recordToStats('short', $record, $stats);
             }
+            if (substr($record->idnumber,0,3) == 'SCX') {
+                recordToStats('teachers', $record, $stats);
+            } else {
+                recordToStats('students', $record, $stats);
+            }
+            recordToStats('all', $record, $stats);
         }
 
 
@@ -177,30 +232,41 @@ class export_active_students {
 
 
         $sheet = $spreadsheet->getActiveSheet();
-        $row = 1;
-        $sheet->setCellValueByColumnAndRow(1, $row++, 'Anwesenheiten ');
-        $sheet->setCellValueByColumnAndRow(1, $row++, $datefrom.' bis '.$dateto);
-        $row += 1;
-        $sheet->setCellValueByColumnAndRow(2, $row++, 'Anzahl');
-        $sheet->setCellValueByColumnAndRow(1, $row, 'Langzeitstudenten ('.$longtermthreshold.'+ Anw.)');
-        $sheet->setCellValueByColumnAndRow(2, $row++, $longterm);
-        $sheet->setCellValueByColumnAndRow(1, $row, 'Kurzzeitstudenten (<'.$longtermthreshold.' Anw.)');
-        $sheet->setCellValueByColumnAndRow(2, $row++, $shortterm);
-
+        $sheet->setTitle('Gesamt');
         $sheet->getColumnDimension('A')->setAutoSize(true);
         $sheet->getColumnDimension('B')->setAutoSize(true);
         $sheet->getColumnDimension('C')->setAutoSize(true);
+
+        $row = 1;
+        $sheet->setCellValueByColumnAndRow(1, $row++, 'Anwesenheit in Kurseinheiten');
+        $sheet->setCellValueByColumnAndRow(1, $row++, $datefrom.' bis '.$dateto);
+        $row += 1;
+        $sheet->setCellValueByColumnAndRow(2, $row, 'Anwesenheiten');
+        $sheet->setCellValueByColumnAndRow(3, $row, 'Stunden');
+        $sheet->setCellValueByColumnAndRow(4, $row, 'Studenten');
+        $row++;
+        foreach ($stats as $stat) {
+            $sheet->setCellValueByColumnAndRow(1, $row, $stat['title']);
+            $sheet->setCellValueByColumnAndRow(2, $row, $stat['presences']);
+            $sheet->setCellValueByColumnAndRow(3, $row, $stat['hours']);
+            $sheet->setCellValueByColumnAndRow(4, $row, $stat['students']);
+            $sheet->getStyle('A'.$row.':A'.$row)->getFont()->setBold(true);
+            $sheet->getStyle('C'.$row.':C'.$row)->getNumberFormat()->setFormatCode('0.0');
+            $row += $stat['linespace'] + 1;
+        }
+
+
+
 
 //        $sheet->getStyle('A3:E3')->getFill()
 //            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
 //            ->getStartColor()->setARGB('FFCCCCCC');
         $sheet->getStyle('A1:A6')->getFont()->setBold(true);
+        $sheet->getStyle('A4:D4')->getFont()->setBold(true);
 
-        $sheet->getStyle('A4:C4')->getFont()->setBold(true);
-
-        $sheet->getStyle('A9:C9')->getFont()->setBold(true);
 
         $row += 2;
+        $sheet->getStyle('A'.$row.':C'.$row)->getFont()->setBold(true);
         $sheet->setCellValueByColumnAndRow(1, $row, 'Matrikelnr.');
         $sheet->setCellValueByColumnAndRow(2, $row, 'Anwesenheiten');
         $sheet->setCellValueByColumnAndRow(3, $row, 'Stunden');
@@ -208,11 +274,208 @@ class export_active_students {
         $row += 1;
         foreach ($records as $record) {
             $col = 1;
-            $sheet->setCellValueByColumnAndRow($col++, $row, $record->idnumber ? $record->idnumber : '[user_'.$record->studentid.']');
+            $sheet->setCellValueByColumnAndRow($col++, $row, $record->idnumber);
             $sheet->setCellValueByColumnAndRow($col++, $row, $record->presences);
             $sheet->setCellValueByColumnAndRow($col++, $row, $record->hours);
+            $sheet->getStyle('C'.$row.':C'.$row)->getNumberFormat()->setFormatCode('0.0');
             $row++;
         }
 
+        $configs = [
+            (object)[
+                'sheetname' => 'Kurse',
+                'title' => 'Anwesenheit in Kurseinheiten',
+                'sessionname' => 'Anwesenheiten',
+                'sqlfilter' => 'AND ps.description <> \'Lernbegleitung\'',
+                'countstudents' => true,
+            ],
+            (object)[
+                'sheetname' => 'Begleitung',
+                'title' => 'Persönliche Begleitung von Student*innen',
+                'sessionname' => 'Begleitungen',
+                'sqlfilter' => 'AND ps.description = \'Lernbegleitung\'',
+                'countstudents' => false,
+            ],
+        ];
+
+        function recordToStats2($n, $record, &$stats) {
+
+            $stats[$n]['students']++;
+            if ($record->presences >= SC_LONGTERMTHRESHOLD) {
+                $stats[$n]['studentslong']++;
+            } else {
+                $stats[$n]['studentsshort']++;
+            }
+            $stats[$n]['presences'] += $record->presences;
+            $stats[$n]['hours'] += $record->hours;
+        }
+
+        foreach($configs as $config) {
+            // second sheet - presence by course
+            $records = $DB->get_records_sql('
+                SELECT MAX(pe.id) id, cc.name category, c.fullname course, pe.studentid, u.id userid, u.idnumber, u.firstname, u.lastname, COUNT(*) as presences, SUM(pe.duration) / 3600 hours
+                FROM {presence_evaluations} pe
+                LEFT JOIN {user} u ON pe.studentid = u.id
+                LEFT JOIN {presence_sessions} ps ON pe.sessionid = ps.id
+                LEFT JOIN {presence} p ON p.id = ps.presenceid
+                LEFT JOIN {course} c ON c.id = p.course
+                LEFT JOIN {course_categories} cc ON c.category = cc.id
+                WHERE pe.duration > 0
+                AND ps.sessdate >= :timefrom
+                AND ps.sessdate < :timeto
+                 '.$config->sqlfilter.' 
+                GROUP BY pe.studentid, u.id, u.idnumber, c.fullname, cc.name
+                ORDER BY cc.name, c.fullname, u.idnumber ASC
+            ', [
+                'timefrom' => $timefrom,
+                'timeto' => $timeto,
+            ]);
+            foreach ($records as $record) {
+                $record->idnumber = $record->idnumber ? $record->idnumber : 'SC-0' . $record->studentid;
+            }
+
+            $recordscats = $DB->get_records_sql('
+                SELECT MAX(pe.id) id, cc.name category, pe.studentid, u.id userid, u.idnumber, u.firstname, u.lastname, COUNT(*) as presences, SUM(pe.duration) / 3600 hours
+                FROM {presence_evaluations} pe
+                LEFT JOIN {user} u ON pe.studentid = u.id
+                LEFT JOIN {presence_sessions} ps ON pe.sessionid = ps.id
+                LEFT JOIN {presence} p ON p.id = ps.presenceid
+                LEFT JOIN {course} c ON c.id = p.course
+                LEFT JOIN {course_categories} cc ON c.category = cc.id
+                WHERE pe.duration > 0
+                AND ps.sessdate >= :timefrom
+                AND ps.sessdate < :timeto
+                 '.$config->sqlfilter.' 
+                GROUP BY pe.studentid, u.id, u.idnumber, cc.name
+                ORDER BY cc.name, u.idnumber ASC
+            ', [
+                'timefrom' => $timefrom,
+                'timeto' => $timeto,
+            ]);
+            foreach ($recordscats as $record) {
+                $record->idnumber = $record->idnumber ? $record->idnumber : 'SC-0' . $record->studentid;
+            }
+
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle($config->sheetname);
+            $sheet->getColumnDimension('A')->setAutoSize(true);
+            $sheet->getColumnDimension('B')->setAutoSize(true);
+            $sheet->getColumnDimension('C')->setAutoSize(true);
+            $sheet->getColumnDimension('D')->setAutoSize(true);
+            $sheet->getColumnDimension('E')->setAutoSize(true);
+            if($config->countstudents) {
+                $sheet->getColumnDimension('F')->setAutoSize(true);
+                $sheet->getColumnDimension('G')->setAutoSize(true);
+                $sheet->getColumnDimension('H')->setAutoSize(true);
+            }
+
+            $row = 1;
+            $sheet->setCellValueByColumnAndRow(1, $row++, $config->title);
+            $sheet->setCellValueByColumnAndRow(1, $row++, $datefrom . ' bis ' . $dateto);
+            $sheet->getStyle('A1:H2')->getFont()->setBold(true);
+
+            $stats = [];
+            foreach ($records as $record) {
+                if (!isset($stats[$record->category . '-' . $record->course])) {
+                    $stats[$record->category . '-' . $record->course] = [
+                        'category' => $record->category,
+                        'course' => $record->course,
+                        'hours' => 0,
+                        'presences' => 0,
+                        'studentslong' => 0,
+                        'studentsshort' => 0,
+                        'students' => 0,
+                    ];
+                }
+                recordToStats2($record->category . '-' . $record->course, $record, $stats);
+            }
+
+            $statscats = [];
+            foreach ($recordscats as $record) {
+                if (!isset($statscats[$record->category])) {
+                    $statscats[$record->category] = [
+                        'category' => $record->category,
+                        'course' => '',
+                        'hours' => 0,
+                        'presences' => 0,
+                        'studentslong' => 0,
+                        'studentsshort' => 0,
+                        'students' => 0,
+                    ];
+                }
+                recordToStats2($record->category, $record, $statscats);
+            }
+
+            $row += 2;
+            $sheet->getStyle('A' . $row . ':H' . $row)->getFont()->setBold(true);
+            $sheet->setCellValueByColumnAndRow(1, $row, 'Fachbereich');
+            $sheet->setCellValueByColumnAndRow(2, $row, 'Kurs');
+            $sheet->setCellValueByColumnAndRow(4, $row, $config->sessionname);
+            $sheet->setCellValueByColumnAndRow(5, $row, 'Stunden');
+            if ($config->countstudents) {
+                $sheet->setCellValueByColumnAndRow(6, $row, 'Student:innen');
+                $sheet->setCellValueByColumnAndRow(7, $row, 'Langzeit');
+                $sheet->setCellValueByColumnAndRow(8, $row, 'Kurzzeit');
+            }
+
+            $row++;
+            foreach ($statscats as $stat) {
+                $sheet->setCellValueByColumnAndRow(1, $row, $stat['category']);
+                $sheet->setCellValueByColumnAndRow(2, $row, $stat['course']);
+                $sheet->setCellValueByColumnAndRow(3, $row, 'Gesamt');
+                $sheet->setCellValueByColumnAndRow(4, $row, $stat['presences']);
+                $sheet->setCellValueByColumnAndRow(5, $row, $stat['hours']);
+                if ($config->countstudents) {
+                    $sheet->setCellValueByColumnAndRow(6, $row, $stat['students']);
+                    $sheet->setCellValueByColumnAndRow(7, $row, $stat['studentslong']);
+                    $sheet->setCellValueByColumnAndRow(8, $row, $stat['studentsshort']);
+                }
+                $sheet->getStyle('E' . $row . ':E' . $row)->getNumberFormat()->setFormatCode('0.0');
+                $row += 1;
+            }
+            $row += 1;
+
+            foreach ($stats as $stat) {
+                $sheet->setCellValueByColumnAndRow(1, $row, $stat['category']);
+                $sheet->setCellValueByColumnAndRow(2, $row, $stat['course']);
+                $sheet->setCellValueByColumnAndRow(3, $row, 'Gesamt');
+                $sheet->setCellValueByColumnAndRow(4, $row, $stat['presences']);
+                $sheet->setCellValueByColumnAndRow(5, $row, $stat['hours']);
+                if ($config->countstudents) {
+                    $sheet->setCellValueByColumnAndRow(6, $row, $stat['students']);
+                    $sheet->setCellValueByColumnAndRow(7, $row, $stat['studentslong']);
+                    $sheet->setCellValueByColumnAndRow(8, $row, $stat['studentsshort']);
+                }
+                $sheet->getStyle('E' . $row . ':E' . $row)->getNumberFormat()->setFormatCode('0.0');
+                $row += 1;
+            }
+
+
+            $row += 2;
+            $sheet->getStyle('A' . $row . ':F' . $row)->getFont()->setBold(true);
+            $sheet->setCellValueByColumnAndRow(1, $row, 'Fachbereich');
+            $sheet->setCellValueByColumnAndRow(2, $row, 'Kurs');
+            $sheet->setCellValueByColumnAndRow(3, $row, 'Matrikelnr.');
+            $sheet->setCellValueByColumnAndRow(4, $row, $config->sessionname);
+            $sheet->setCellValueByColumnAndRow(5, $row, 'Stunden');
+
+            $row += 1;
+            $prev = null;
+            foreach ($records as $record) {
+                $col = 1;
+                if ($prev && $prev != $record->category . '-' . $record->course) {
+                    $row++;
+                }
+                $sheet->setCellValueByColumnAndRow($col++, $row, $record->category);
+                $sheet->setCellValueByColumnAndRow($col++, $row, $record->course);
+                $sheet->setCellValueByColumnAndRow($col++, $row, $record->idnumber);
+                $sheet->setCellValueByColumnAndRow($col++, $row, $record->presences);
+                $sheet->setCellValueByColumnAndRow($col++, $row, $record->hours);
+                $sheet->getStyle('E' . $row . ':E' . $row)->getNumberFormat()->setFormatCode('0.0');
+                $prev = $record->category . '-' . $record->course;
+                $row++;
+            }
+        }
+        $spreadsheet->setActiveSheetIndex(0);
     }
 }

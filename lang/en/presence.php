@@ -378,6 +378,7 @@ $string['submit'] = 'Submit';
 $string['summary'] = 'Summary';
 $string['tactions'] = 'Action';
 $string['tcreated'] = 'Created';
+$string['teacherselect'] = 'Teacher';
 $string['thiscourse'] = 'This course';
 $string['time'] = 'Time';
 $string['to'] = 'to:';

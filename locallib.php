@@ -171,6 +171,32 @@ function presence_form_sessiondate_selector (MoodleQuickForm $mform, $dateselect
 }
 
 /**
+ * Helper function to add teacher options to add/update forms.
+ *
+ * @param MoodleQuickForm $mform
+ * @param mod_presence_structure $presence
+ * @param stdClass $sess
+ */
+function presence_form_session_teacher (MoodleQuickForm $mform, mod_presence_structure $presence, $sess = null) {
+    $teachers = $presence->get_teachers();
+
+    $options = [0 => '']; //  $teachers; // [0 => ''] + $presence->get_room_names(true, true);
+    foreach($teachers as $teacher) {
+        $options[$teacher->id] = fullname($teacher);
+    }
+    if (isset($sess->teacher) && $sess->teacher && !isset($options[$sess->teacher]) ) {
+        $teacher = \local_streetcollege\users::get_user_simple($sess->teacher);
+        if($teacher) {
+            $options[$sess->teacher] = $teacher->fullname;
+        }
+    }
+
+    $mform->addElement('select', 'teacherid',
+        get_string('teacherselect', 'presence'), $options);
+    $mform->setType('teacherid', PARAM_INT);
+}
+
+/**
  * Helper function to add room options to add/update forms.
  *
  * @param MoodleQuickForm $mform
@@ -185,7 +211,6 @@ function presence_form_session_room (MoodleQuickForm $mform, mod_presence_struct
         $sess->bookings = 0;
 
     }
-
 
     $options = [0 => ''] + $presence->get_room_names(true, true);
     $mform->addElement('select', 'roomid',
@@ -353,6 +378,7 @@ function presence_construct_sessions_data_for_add($formdata, mod_presence_struct
                     $sess->duration = $duration;
                     $sess->description = $formdata->sdescription;
                     $sess->timemodified = $now;
+                    $sess->teacher = intval($formdata->teacherid);
                     $sess->roomid = intval($formdata->roomid);
                     $sess->maxattendants = intval($formdata->maxattendants);
                     $sess->calgroup = $calgroup;
@@ -371,6 +397,7 @@ function presence_construct_sessions_data_for_add($formdata, mod_presence_struct
         $sess->duration = $duration;
         $sess->description = $formdata->sdescription;
         $sess->timemodified = $now;
+        $sess->teacher = intval($formdata->teacherid);
         $sess->roomid = intval($formdata->roomid);
         $sess->maxattendants = intval($formdata->maxattendants);
         $sess->calgroup = 0;

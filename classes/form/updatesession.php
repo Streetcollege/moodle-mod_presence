@@ -57,6 +57,7 @@ class updatesession extends \moodleform {
         $defopts = array('maxfiles' => $maxfiles, 'noclean' => true, 'context' => $modcontext);
         $sess = file_prepare_standard_editor($sess, 'description', $defopts, $modcontext, 'mod_presence', 'session', $sess->id);
 
+
         $sess->bookings = presence_sessionbookings($sess->id);
 
         $starttime = $sess->sessdate - usergetmidnight($sess->sessdate);
@@ -68,11 +69,13 @@ class updatesession extends \moodleform {
         $endhour = floor($endtime / HOURSECS);
         $endminute = floor(($endtime - $endhour * HOURSECS) / MINSECS);
 
+
         $data = array(
             'sessiondate' => $sess->sessdate,
             'sessiondatestring' => userdate($sess->sessdate, get_string('strftimedaydate', 'langconfig')),
             'sestime' => array('starthour' => $starthour, 'startminute' => $startminute,
             'endhour' => $endhour, 'endminute' => $endminute),
+            'teacherid' => $sess->teacher,
             'sdescription' => $sess->description,
             'calendarevent' => $sess->calendarevent,
             'roomid' => $sess->roomid,
@@ -108,6 +111,8 @@ class updatesession extends \moodleform {
         $sesendtime[] =& $mform->createElement('select', 'endminute', get_string('minute', 'form'), $minutes, false, true);
 
         $mform->addGroup($sesendtime, 'sestime', get_string('time', 'presence'), array(' '), true);
+
+        presence_form_session_teacher($mform, $presence, $sess);
 
         $mform->addElement('textarea', 'sdescription', get_string('description', 'presence'),
                            array('rows' => 2, 'columns' => 100), $defopts);

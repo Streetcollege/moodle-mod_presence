@@ -501,7 +501,7 @@ class mod_presence_external extends external_api {
         $res = $DB->get_records_sql('SELECT u.id userid, u.firstname, u.lastname
             FROM {presence_bookings} pb
             LEFT JOIN {user} u ON pb.userid = u.id
-            WHERE pb.sessionid = 95');
+            WHERE pb.sessionid = '.intval($sessionid));
         foreach($res as $user) {
             $user->fullname = trim($user->firstname.' '.$user->lastname);
         }
