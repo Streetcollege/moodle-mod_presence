@@ -74,6 +74,7 @@ class presence
             array_push($filters, 'ps.sessdate <= '.intval($params['timeto']));
         }
         $sql = 'SELECT ps.*, pr.name roomname, c.fullname coursename, cc.name categoryname, pb.id booked '
+            .', u.firstname teacherfirstname, u.lastname teacherlastname '
             .', (SELECT COUNT(*) FROM {presence_bookings} WHERE sessionid = ps.id) attendants '
             .'FROM {presence_sessions} ps '
             .'LEFT JOIN {presence_rooms} pr ON ps.roomid = pr.id '
@@ -81,6 +82,7 @@ class presence
             .'LEFT JOIN {course} c ON c.id = p.course '
             .'LEFT JOIN {course_categories} cc ON c.category = cc.id '
             .'LEFT JOIN {presence_bookings} pb ON (ps.id = pb.sessionid AND pb.userid = '.intval($USER->id).') '
+            .'LEFT JOIN {user} u ON u.id = ps.teacher '
             .'WHERE '
             . (sizeof($filters) ? implode(' AND ', $filters) : '')
             .' ORDER BY ps.sessdate ASC '
@@ -93,7 +95,14 @@ class presence
             unset($params['minresults']);
             return self::get_sessions($presenceid, $params);
         }
-        return $sessions;
+        $reachedend = false;
+        if (isset($params['maxresults']) && $params['maxresults'] > sizeof($sessions)) {
+            $reachedend = true;
+        }
+        return [
+            'sessions' => $sessions,
+            'reachedend' => $reachedend,
+        ];
     }
 
     /**
@@ -113,6 +122,7 @@ class presence
             array_push($filters, 'ps.sessdate <= '.intval($params['timeto']));
         }
         $sql = 'SELECT ps.*, pr.name roomname, c.fullname coursename, cc.name categoryname, pb.id booked '
+            .', u.firstname teacherfirstname, u.lastname teacherlastname '
             .', (SELECT COUNT(*) FROM {presence_bookings} WHERE sessionid = ps.id) attendants '
             .'FROM {presence_sessions} ps '
             .'LEFT JOIN {presence_rooms} pr ON ps.roomid = pr.id '
@@ -120,6 +130,7 @@ class presence
             .'LEFT JOIN {course} c ON c.id = p.course '
             .'LEFT JOIN {course_categories} cc ON c.category = cc.id '
             .'LEFT JOIN {presence_bookings} pb ON (ps.id = pb.sessionid AND pb.userid = '.intval($userid).') '
+            .'LEFT JOIN {user} u ON u.id = ps.teacher '
             .'WHERE pb.userid='.intval($userid).' '
             .(sizeof($filters) ? ' AND '.implode(' AND ', $filters) : '').' '
             .' ORDER BY ps.sessdate ASC';
@@ -149,7 +160,7 @@ class presence
             throw new \coding_exception("error saving remark - course has no presence plugin attached");
         }
         $timestamp = strtotime($date);
-        if (!$timestamp) {
+        if (!$timestamp || !$studentid || !$courseid || !$date || !$duration) {
             throw new \coding_exception("missing date");
         }
         // create session

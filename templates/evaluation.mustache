@@ -54,7 +54,7 @@
                         <span class="bold">{{&description}}</span><br />
                         <span data-presence-book-names="{{id}}">
                             {{#attendants}}
-                                {{firstname}} {{lastname}} {{idnumber}}{{^islast}}, {{/islast}}
+                                <a href="{{&profileurl}}">{{firstname}} {{lastname}} {{idnumber}}</a>{{^islast}}, {{/islast}}
                             {{/attendants}}
                         </span>
                     </div>

@@ -268,6 +268,22 @@ function xmldb_presence_upgrade($oldversion=0) {
     }
 
 
+    if ($oldversion < 2021080401) {
+
+        // Define field active to be added to presence_user.
+        $table = new xmldb_table('presence_user');
+        $field = new xmldb_field('active', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'timecreated');
+
+        // Conditionally launch add field active.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Presence savepoint reached.
+        upgrade_mod_savepoint(true, 2021080401, 'presence');
+    }
+
+
     return true;
 }
 

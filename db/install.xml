@@ -140,6 +140,7 @@
         <FIELD NAME="checklistchecks" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Checked items on checklist"/>
         <FIELD NAME="checklistitems" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Custom items for users checklist"/>
         <FIELD NAME="nextexam" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="id of planned exam from streetcollege_examplan::id"/>
+        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

@@ -242,10 +242,11 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
             function saveRemarkField(o) {
 
                 if ($(o).attr("data-trigger") === 'blur' && !$(o).attr("data-focus")) {
-                    console.log("already saved");
+                    console.log("already saved, trigger:", $(o).attr("data-trigger"),
+                        $(o).attr("data-trigger") === 'blur', 'focus: ', $(o).attr("data-focus"), !$(o).attr("data-focus"));
                     return null;
                 }
-                // console.log("save remarks");
+                 console.log("save remarks");
                 $(o).attr("data-focus", false);
 
                 var sessionid = $('[data-module=mod_presence][data-sessionid]').val();
@@ -331,6 +332,10 @@ require(['core/first', 'jquery', 'jqueryui', 'core/ajax', 'core/notification', ]
                 console.log("focus: ", $(this));
             });
 
+            $('[data-module=mod_presence_evaluate][data-trigger=blur]').focus(function() {
+                console.log("focus: ", $(this));
+                $(this).attr("data-focus", true);
+            });
             $('[data-module=mod_presence_evaluate][data-trigger=blur]').blur(function() {
                 console.log("blur: ", $(this));
                 saveRemarkField(this);

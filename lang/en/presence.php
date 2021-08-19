@@ -185,6 +185,7 @@ $string['months'] = 'Months';
 $string['morepresence'] = 'presence has been successfully taken for this page';
 $string['moveleft'] = 'Move left';
 $string['moveright'] = 'Move right';
+$string['name_may_be_nickname'] = 'Name may be real name (firstname lastname) or just firstname or just nickanme';
 $string['newdate'] = 'New date';
 $string['newduration'] = 'New duration';
 $string['newuser'] = 'New user';

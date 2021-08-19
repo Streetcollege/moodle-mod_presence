@@ -139,6 +139,7 @@ $string['modulename'] = 'Präsenz';
 $string['modulename_help'] = 'Die Präsenz-Aktivität erlaubt es Dozenten Lerneinheiten in Räumen anzulegen. Diese können von Studenten gebucht werden. Nach der Lerneinheit kann die Anwesenheit erfasst werden.';
 $string['modulenameplural'] = 'Präsenzen';
 $string['months'] = 'Monate';
+$string['name_may_be_nickname'] = 'Name darf echter Name (Vorname Nachname) sein oder auch nur Vorname oder nur Spitzname';
 $string['newdate'] = 'Neues Datum';
 $string['newduration'] = 'Neue Dauer';
 $string['newuser'] = 'Neuer Benutzer';

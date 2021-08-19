@@ -809,7 +809,6 @@ class mod_presence_external extends external_api {
                 'takenby' => $USER->id,
             ];
 
-
             $id = $DB->get_field('presence_evaluations', 'id', ['sessionid' => $sessionid, 'studentid' => $update['userid']]);
             if ($id) {
                 $DB->update_record('presence_evaluations', array_merge(['id' => $id], $params));
@@ -818,6 +817,10 @@ class mod_presence_external extends external_api {
                 if (!$id) {
                     throw new coding_exception('Error putting presence into db.');
                 }
+            }
+            if ($params['duration']) {
+                $id = $DB->get_field('presence_user', 'id', ['userid' => $update['userid']]);
+                if ($id) $DB->update_record('presence_user', ['id' => $id, 'active' => 1]);
             }
         }
 
@@ -1031,7 +1034,7 @@ class mod_presence_external extends external_api {
         $contextid = $context->id;
 
         $querySql = $query;
-        if (preg_match('/[\-0-9]/', $query)) {
+        if (preg_match('/[\-0-9]/', $query) || strlen($query) > 2) {
             $querySql = '%'.strtolower($querySql).'%';
         } else  {
             $querySql = strtolower($querySql).'%';
@@ -1178,7 +1181,7 @@ class mod_presence_external extends external_api {
             if ($user['action'] == 3) {
                 $uname = strtolower(preg_replace('/[\W]/','', $user['name']));
                 $names = explode(" ", ucfirst($user['name']));
-                $user['lastname'] = array_pop($names);
+                $user['lastname'] = (sizeof($names) > 1) ?array_pop($names)  : '';
                 $user['firstname'] = implode(" ", $names);
                 $user['email'] = trim($user['email']);
                 $user['phone'] = trim($user['phone']);
@@ -1204,14 +1207,13 @@ class mod_presence_external extends external_api {
                     'timemodified' => time(),
                     'lang' => 'de',
                     'mnethostid' => 1,
+                    'confirmed' => 1,
+                    'description' => 'Erstellt bei Evaluation am '.date('d.m.Y, H:i').' durch '.fullname($USER)."\n",
                 ]);
                 if (!$user['id']) {
                     throw new coding_exception("Error creating new user");
                 }
-                $sql = "SELECT MAX(CASE WHEN idnumber~E'^\\\\d+$' THEN CAST (idnumber AS INTEGER) ELSE 0 END) as num
-                    FROM {user}";
-                $res = $DB->get_record_sql($sql);
-                $DB->update_record('user', ['id' => $user['id'], 'idnumber' => intval($res->num) + 1]);
+                $DB->update_record('user', ['id' => $user['id'], 'idnumber' => 'NEU-'.$user['id']]);
             }
             if ($user['action'] >= 2) {
                 if (!$DB->record_exists('user', array('id'=>$user['id'], 'deleted'=>0))) {

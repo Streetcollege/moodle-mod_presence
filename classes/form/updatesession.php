@@ -52,7 +52,6 @@ class updatesession extends \moodleform {
             error('No such session in this course');
         }
 
-        $presencesubnet = $DB->get_field('presence', 'subnet', array('id' => $sess->presenceid));
         $maxfiles = intval(get_config('enableunlimitedfiles', 'mod_presence')) ? EDITOR_UNLIMITED_FILES : 0;
         $defopts = array('maxfiles' => $maxfiles, 'noclean' => true, 'context' => $modcontext);
         $sess = file_prepare_standard_editor($sess, 'description', $defopts, $modcontext, 'mod_presence', 'session', $sess->id);

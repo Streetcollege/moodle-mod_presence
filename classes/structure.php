@@ -717,10 +717,18 @@ class mod_presence_structure {
      */
     public function get_teachers() {
         global $DB;
-        $role = $DB->get_record('role', array('shortname' => 'editingteacher'));
+        $role1 = $DB->get_record('role', array('shortname' => 'editingteacher'));
+        $role2 = $DB->get_record('role', array('shortname' => 'manager'));
         $context = context_course::instance($this->course->id);
-        $teachers = get_role_users($role->id, $context);
-        return $teachers;
+        $teachers = array_merge(
+            get_role_users($role1->id, $context, false, '', null, true, '', '', '', 'u.deleted = 0 AND u.suspended = 0'),
+            get_role_users($role2->id, $context, false, '', null, true, '', '', '', 'u.deleted = 0 AND u.suspended = 0')
+        );
+        $bag = [];
+        foreach($teachers as $teacher) {
+            $bag[$teacher->id] = $teacher;
+        }
+        return array_values($bag);
     }
 
 
