@@ -128,7 +128,9 @@
         <FIELD NAME="supervisor" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Supervisor in general"/>
         <FIELD NAME="supervisorlab" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Supervisor for Lernlabor"/>
         <FIELD NAME="realname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Real name of this user"/>
+        <FIELD NAME="realfirstname" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="contactperson" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A contact person to this user"/>
+        <FIELD NAME="addressco" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="c/o part of address"/>
         <FIELD NAME="agegroup" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Age group of this user"/>
         <FIELD NAME="backgrounds" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="backgrounds of user, list of items"/>
         <FIELD NAME="languages" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Languages of user, list of items"/>

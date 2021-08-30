@@ -1208,12 +1208,13 @@ class mod_presence_external extends external_api {
                     'lang' => 'de',
                     'mnethostid' => 1,
                     'confirmed' => 1,
-                    'description' => 'Erstellt bei Evaluation am '.date('d.m.Y, H:i').' durch '.fullname($USER)."\n",
+                    'idnumber' => '',
+                    'description' => 'Erstellt bei Evaluation am '.date('d.m.Y, H:i').' durch DozentIn '.fullname($USER)."\n",
                 ]);
                 if (!$user['id']) {
                     throw new coding_exception("Error creating new user");
                 }
-                $DB->update_record('user', ['id' => $user['id'], 'idnumber' => 'NEU-'.$user['id']]);
+//                $DB->update_record('user', ['id' => $user['id'], 'idnumber' => 'NEU-'.$user['id']]);
             }
             if ($user['action'] >= 2) {
                 if (!$DB->record_exists('user', array('id'=>$user['id'], 'deleted'=>0))) {

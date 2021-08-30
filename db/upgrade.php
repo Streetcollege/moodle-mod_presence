@@ -283,6 +283,28 @@ function xmldb_presence_upgrade($oldversion=0) {
         upgrade_mod_savepoint(true, 2021080401, 'presence');
     }
 
+    if ($oldversion < 2021082501) {
+
+        // Define field realfirstname to be added to presence_user.
+        $table = new xmldb_table('presence_user');
+        $field = new xmldb_field('realfirstname', XMLDB_TYPE_TEXT, null, null, null, null, null, 'realname');
+
+        // Conditionally launch add field realfirstname.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('addressco', XMLDB_TYPE_TEXT, null, null, null, null, null, 'contactperson');
+
+        // Conditionally launch add field addressco.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Presence savepoint reached.
+        upgrade_mod_savepoint(true, 2021082501, 'presence');
+    }
+
 
     return true;
 }
