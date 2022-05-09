@@ -30,7 +30,13 @@ require_once($CFG->dirroot.'/mod/presence/lib.php');
 require_once($CFG->dirroot.'/mod/presence/locallib.php');
 require_once($CFG->dirroot.'/mod/presence/classes/form/editroom.php');
 
-admin_externalpage_setup('managemodules');
+if(!has_capability('local/streetcollege:manager', \context_system::instance())) {
+    echo $OUTPUT->header();
+    echo "Access denied. Must be <b>manager</b> to access this page";
+    echo $OUTPUT->footer();
+    exit();
+}
+
 
 $url = new moodle_url('/mod/presence/rooms.php');
 $deleteroomid = optional_param('del', null, PARAM_INT);

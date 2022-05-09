@@ -136,7 +136,7 @@ class export_active_students {
 
 
     public function write($spreadsheet, $params) {
-        global $DB;
+        global $DB, $GLOBALS;
 
         define('SC_LONGTERMTHRESHOLD', 8);
 
@@ -146,7 +146,7 @@ class export_active_students {
         $timeto = strtotime($dateto) + (24 * 3600);
 
         $records = $DB->get_records_sql('
-            SELECT pe.studentid, u.idnumber, u.firstname, u.lastname, COUNT(*) as presences, SUM(pe.duration) / 3600 hours
+            SELECT pe.studentid, u.id, u.idnumber, u.firstname, u.lastname, COUNT(*) as presences, SUM(pe.duration) / 3600 hours
             FROM {presence_evaluations} pe
             LEFT JOIN {user} u ON pe.studentid = u.id
             LEFT JOIN {presence_sessions} ps ON pe.sessionid = ps.id
@@ -154,7 +154,9 @@ class export_active_students {
             AND ps.sessdate >= :timefrom
             AND ps.sessdate < :timeto
             AND ps.description <> \'Lernbegleitung\'
-            GROUP BY pe.studentid, u.idnumber, u.firstname, u.lastname
+            AND u.idnumber <> \'\'
+            AND u.deleted = 0 AND u.suspended = 0
+            GROUP BY pe.studentid, u.idnumber, u.id, u.firstname, u.lastname
             ORDER BY u.idnumber ASC
         ', [
             'timefrom' => $timefrom,
@@ -236,6 +238,7 @@ class export_active_students {
         $sheet->getColumnDimension('A')->setAutoSize(true);
         $sheet->getColumnDimension('B')->setAutoSize(true);
         $sheet->getColumnDimension('C')->setAutoSize(true);
+        $sheet->getColumnDimension('D')->setAutoSize(true);
 
         $row = 1;
         $sheet->setCellValueByColumnAndRow(1, $row++, 'Anwesenheit in Kurseinheiten');
@@ -262,14 +265,15 @@ class export_active_students {
 //            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
 //            ->getStartColor()->setARGB('FFCCCCCC');
         $sheet->getStyle('A1:A6')->getFont()->setBold(true);
-        $sheet->getStyle('A4:D4')->getFont()->setBold(true);
+        $sheet->getStyle('A4:F4')->getFont()->setBold(true);
 
 
         $row += 2;
-        $sheet->getStyle('A'.$row.':C'.$row)->getFont()->setBold(true);
+        $sheet->getStyle('A'.$row.':F'.$row)->getFont()->setBold(true);
         $sheet->setCellValueByColumnAndRow(1, $row, 'Matrikelnr.');
         $sheet->setCellValueByColumnAndRow(2, $row, 'Anwesenheiten');
         $sheet->setCellValueByColumnAndRow(3, $row, 'Stunden');
+        $sheet->setCellValueByColumnAndRow(5, $row, 'Profil');
 
         $row += 1;
         foreach ($records as $record) {
@@ -278,6 +282,10 @@ class export_active_students {
             $sheet->setCellValueByColumnAndRow($col++, $row, $record->presences);
             $sheet->setCellValueByColumnAndRow($col++, $row, $record->hours);
             $sheet->getStyle('C'.$row.':C'.$row)->getNumberFormat()->setFormatCode('0.0');
+            $col++;
+            $url = $GLOBALS['CFG']->wwwroot.'/local/streetcollege/userprofile.php?userid='.$record->id;
+            $sheet->setCellValueByColumnAndRow($col, $row, $url);
+            $sheet->getCellByColumnAndRow($col, $row)->getHyperlink()->setUrl($url);
             $row++;
         }
 

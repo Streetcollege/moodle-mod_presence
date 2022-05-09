@@ -1078,7 +1078,8 @@ class mod_presence_external extends external_api {
             ];
         }
 
-        if (!count($results)) {
+        // Auto-enrolment deactivated on request of SC
+/*        if (!count($results)) {
             $results[] = [
                 'userid' => 0,
                 'name' => ucfirst($query),
@@ -1086,7 +1087,7 @@ class mod_presence_external extends external_api {
                 'action' => 3,
                 'actiontext' => get_string('signupenrollandbook', 'presence'),
             ];
-        }
+        }*/
 
         return [
             'query' => $query,

@@ -213,8 +213,13 @@ function presence_form_session_room (MoodleQuickForm $mform, mod_presence_struct
     }
 
     $options = [0 => ''] + $presence->get_room_names(true, true);
-    $mform->addElement('select', 'roomid',
-        get_string('roomselect', 'presence'), $options);
+
+    $labelSelectRoom =  get_string('roomselect', 'presence');
+    if(has_capability('local/streetcollege:manager', \context_system::instance())) {
+        $labelSelectRoom .= '<br /><a href="/mod/presence/rooms.php">('.get_string('edit').')</a>';
+    }
+
+    $mform->addElement('select', 'roomid', $labelSelectRoom, $options);
     $mform->setType('roomid', PARAM_INT);
 
     $mform->addElement('select', 'maxattendants',

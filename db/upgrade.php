@@ -306,6 +306,52 @@ function xmldb_presence_upgrade($oldversion=0) {
     }
 
 
+    if ($oldversion < 2022020601) {
+
+        // Define field personalneeds to be added to presence_user.
+        $table = new xmldb_table('presence_user');
+
+        $field = new xmldb_field('personalneeds', XMLDB_TYPE_TEXT, null, null, null, null, null, 'timecreated');
+
+        // Conditionally launch add field personalneeds.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('workneeds', XMLDB_TYPE_TEXT, null, null, null, null, null, 'personalneeds');
+
+        // Conditionally launch add field workneeds.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('heardaboutsc', XMLDB_TYPE_TEXT, null, null, null, null, null, 'workneeds');
+
+        // Conditionally launch add field heardaboutsc.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Presence savepoint reached.
+        upgrade_mod_savepoint(true, 2022020601, 'presence');
+    }
+
+    if ($oldversion < 2022041901) {
+
+        // Define field wordcloud to be added to presence_user.
+        $table = new xmldb_table('presence_user');
+        $field = new xmldb_field('wordcloud', XMLDB_TYPE_TEXT, null, null, null, null, null, 'timecreated');
+
+        // Conditionally launch add field wordcloud.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Presence savepoint reached.
+        upgrade_mod_savepoint(true, 2022041901, 'presence');
+    }
+
+
     return true;
 }
 

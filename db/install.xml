@@ -124,6 +124,9 @@
         <FIELD NAME="birthplace" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="title" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="strengths" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="List of strengths of this user"/>
+        <FIELD NAME="personalneeds" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="workneeds" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="heardaboutsc" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="statusremark" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="supervisor" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Supervisor in general"/>
         <FIELD NAME="supervisorlab" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Supervisor for Lernlabor"/>
@@ -142,6 +145,7 @@
         <FIELD NAME="checklistchecks" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Checked items on checklist"/>
         <FIELD NAME="checklistitems" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Custom items for users checklist"/>
         <FIELD NAME="nextexam" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="id of planned exam from streetcollege_examplan::id"/>
+        <FIELD NAME="wordcloud" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
