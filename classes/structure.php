@@ -912,16 +912,22 @@ class mod_presence_structure {
             $this->sessioninfo[$sessionid]->description = file_rewrite_pluginfile_urls(strip_tags($this->sessioninfo[$sessionid]->description),
                 'pluginfile.php', $this->context->id, 'mod_presence', 'session', $this->sessioninfo[$sessionid]->id);
         }
-        $blocklength = 30; // minutes per block (presence selector will offer presence time in blocks)
+        $blocklength = 30 * 60; // minutes per block (presence selector will offer presence time in blocks)
         $durationoptions = [];
-        for ($i = $blocklength * 60; $i < $this->sessioninfo[$sessionid]->duration; $i += $blocklength * 60) {
-            $durationoptions[] = ['caption' => gmdate("H:i", $i), 'value' => $i];
+        $sessionduration = intval($this->sessioninfo[$sessionid]->duration);
+        for ($i = $blocklength; $i <= 12 * 60 * 60 /* $this->sessioninfo[$sessionid]->duration */; $i += $blocklength) {
+            $durationoption = ['caption' => gmdate("H:i", $i), 'value' => $i];
+            if ($sessionduration == $i) {
+                $durationoption['selected'] = true;
+            } else if ($i - $sessionduration > 0 && $i - $sessionduration < $blocklength) {
+                $durationoptions[] = [
+                    'caption' => gmdate("H:i", $this->sessioninfo[$sessionid]->duration),
+                    'value' => $this->sessioninfo[$sessionid]->duration,
+                    'selected' => true
+                ];
+            }
+            $durationoptions[] = $durationoption;
         }
-        $durationoptions[] = [
-            'caption' => gmdate("H:i", $this->sessioninfo[$sessionid]->duration),
-            'value' => $this->sessioninfo[$sessionid]->duration,
-            'selected' => true
-        ];
         $this->sessioninfo[$sessionid]->durationoptions = $durationoptions;
         return $this->sessioninfo[$sessionid];
     }

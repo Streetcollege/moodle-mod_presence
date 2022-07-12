@@ -23,11 +23,17 @@
 <div class="fullwidth mt-4">
     <h4>{{#str}}evaluation, presence{{/str}}</h4>
     <div class="mt-3">
-        <a href="{{&buttonurl}}">
-            <button class="btn btn-secondary">{{buttoncaption}}</button>
+        <a href="{{&urlshowfinished}}">
+            <button class="btn btn-secondary"><input type="checkbox" {{#showfinished}}checked{{/showfinished}} style="pointer-events: none" /> {{#str}}showevaluations_all, presence{{/str}}</button>
+        </a>
+        <a href="{{&urlallteachers}}">
+            <button class="btn btn-secondary"><input type="checkbox" {{#showallteachers}}checked{{/showallteachers}} style="pointer-events: none" /> {{#str}}showevaluations_teachers_all, presence{{/str}}</button>
         </a>
         <a href="{{&urlfinishall}}" class="ml-1">
-            <button class="btn btn-primary">{{#str}}finishallevaluations, presence{{/str}}</button>
+            <button class="btn btn-primary">
+                {{#showallteachers}}{{#str}}finishallevaluations, presence{{/str}}{{/showallteachers}}
+                {{^showallteachers}}{{#str}}finishmyevaluations, presence{{/str}}{{/showallteachers}}
+            </button>
         </a>
     </div>
 </div>

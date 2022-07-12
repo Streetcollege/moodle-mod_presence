@@ -41,6 +41,7 @@ $pageparams->view           = optional_param('view', null, PARAM_INT);
 $pageparams->curdate        = optional_param('curdate', null, PARAM_INT);
 $pageparams->action         = optional_param('action',  null, PARAM_INT);
 $pageparams->sessionid      = optional_param('sessionid',  null, PARAM_INT);
+$pageparams->showallteachers   = optional_param('showallteachers',  null, PARAM_INT);
 $pageparams->showfinished   = optional_param('showfinished',  null, PARAM_INT);
 $pageparams->perpage        = get_config('presence', 'resultsperpage');
 
@@ -94,21 +95,39 @@ switch ($presence->pageparams->action) {
         redirect($presence->url_evaluation(), get_string('evaluationfinished', 'presence'), \core\output\notification::NOTIFY_SUCCESS);
         break;
     case mod_presence_sessions_page_params::ACTION_EVALUATE_FINISH_ALL:
-        presence_finish_all_evaluations($presence);
-        redirect($presence->url_evaluation(), get_string('evaluationsfinished', 'presence'), \core\output\notification::NOTIFY_SUCCESS);
+        if( intval($pageparams->showallteachers)) {
+            presence_finish_all_evaluations($presence);
+        } else {
+            presence_finish_my_evaluations($presence);
+        }
+        redirect($presence->url_evaluation([
+            'showallteachers' => intval($pageparams->showallteachers),
+            'showfinished' => intval($pageparams->showfinished),
+        ]), get_string('evaluationsfinished', 'presence'), \core\output\notification::NOTIFY_SUCCESS);
         break;
     default:
         presence_print_header();
         $pageparams->startdate = 0;
         $pageparams->enddate = time();
-        $sessiondata = new presence_sessions_data($presence, true);
+        $sessiondata = new presence_sessions_data($presence, $pageparams);
         $templatecontext = (object)[
             'sessions' => $sessiondata->sessions,
             'sessionsbydate' => $sessiondata->sessionsbydate,
-            'urlfinishall' => $presence->url_evaluation(['action' => mod_presence_sessions_page_params::ACTION_EVALUATE_FINISH_ALL]),
-            'buttoncaption' => $pageparams->showfinished ?
-                get_string('showevaluations_open', 'presence') : get_string('showevaluations_all', 'presence'),
-            'buttonurl' => $presence->url_evaluation(['showfinished' => intval($pageparams->showfinished) ^ 1]),
+            'urlfinishall' => $presence->url_evaluation([
+                'action' => mod_presence_sessions_page_params::ACTION_EVALUATE_FINISH_ALL,
+                'showallteachers' => intval($pageparams->showallteachers),
+                'showfinished' => intval($pageparams->showfinished),
+            ]),
+            'showallteachers' => intval($pageparams->showallteachers),
+            'showfinished' => intval($pageparams->showfinished),
+            'urlshowfinished' => $presence->url_evaluation([
+                'showallteachers' => intval($pageparams->showallteachers),
+                'showfinished' => intval($pageparams->showfinished) ^ 1,
+            ]),
+            'urlallteachers' => $presence->url_evaluation([
+                'showallteachers' => intval($pageparams->showallteachers) ^ 1,
+                'showfinished' => intval($pageparams->showfinished),
+            ]),
         ];
         echo $OUTPUT->render_from_template('mod_presence/evaluation', $templatecontext);
        break;

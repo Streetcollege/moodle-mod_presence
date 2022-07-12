@@ -634,3 +634,24 @@ function presence_finish_all_evaluations($presence) {
         ]);
     }
 }
+
+/**
+ * Finish evaluation of given session.
+ * @param mod_presence_structure $presence
+ */
+function presence_finish_my_evaluations($presence) {
+    global $DB, $USER;
+    $evaluations = $DB->get_records_select('presence_sessions',
+        'sessdate < :now AND presenceid = :presenceid AND lastevaluatedby = 0 AND teacher = :teacher', [
+            'now' => time(),
+            'presenceid' => $presence->id,
+            'teacher' => $USER->id,
+        ]);
+    foreach ($evaluations as $evaluation) {
+        $DB->update_record('presence_sessions', (object)[
+            'id' => $evaluation->id,
+            'lastevaluated' => time(),
+            'lastevaluatedby' => $USER->id,
+        ]);
+    }
+}

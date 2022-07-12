@@ -298,16 +298,24 @@ class presence_sessions_data implements renderable {
      * @param mod_presence_structure $presence instance
      * @throws coding_exception
      */
-    public function __construct(mod_presence_structure $presence) {
+    public function __construct(mod_presence_structure $presence, $pageparams = null) {
+        global $USER;
 
         $this->sessions = $presence->get_filtered_sessions();
 
         $this->sessionsbydate = array();
         $olddate = null;
         $dateid = -1;
+
+        $showallteachers = !isset($pageparams->showallteachers) || $pageparams->showallteachers;
+
         foreach ($this->sessions as $session) {
             $date = \local_streetcollege\tools::format_date_short($session->sessdate);
             //userdate($session->sessdate, get_string('strftimedate', 'langconfig'));
+
+            if(!$showallteachers && $USER->id != $session->teacher) {
+                continue;
+            }
 
             $session->attendants = array_values($presence->get_users_session($session->id));
             // hide non-attendants for closed evaluations
@@ -412,7 +420,7 @@ class presence_evaluation_data implements renderable {
             }
             if (!isset($user->duration) || !$user->duration) {
                 $user->duration = "0";
-                $userdurationoptions[$maxduration]->selected = 1;
+                $userdurationoptions[$this->session->duration]->selected = 1;
             } else if (array_key_exists($user->duration, $userdurationoptions)) {
                 $userdurationoptions[$user->duration]->selected = 1;
             }

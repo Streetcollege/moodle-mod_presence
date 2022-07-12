@@ -1078,8 +1078,7 @@ class mod_presence_external extends external_api {
             ];
         }
 
-        // Auto-enrolment deactivated on request of SC
-/*        if (!count($results)) {
+        if (!count($results)) {
             $results[] = [
                 'userid' => 0,
                 'name' => ucfirst($query),
@@ -1087,7 +1086,7 @@ class mod_presence_external extends external_api {
                 'action' => 3,
                 'actiontext' => get_string('signupenrollandbook', 'presence'),
             ];
-        }*/
+        }
 
         return [
             'query' => $query,
@@ -1319,13 +1318,13 @@ class mod_presence_external extends external_api {
                     JOIN {presence} p ON p.id = ps.presenceid
                     JOIN {course} c ON c.id = p.course
                     WHERE roomid=:roomid 
-                    AND  (ps.sessdate < :datefrom AND ps.sessdate + ps.duration > :dateto)
+                    AND  (ps.sessdate < :dateto AND ps.sessdate + ps.duration > :datefrom)
                     AND ps.calgroup <> :calgroup
                     AND ps.id <> :sessid",[
                     'sessid' => $sessionid,
                     'roomid' => $roomid,
-                    'datefrom' => $date + $duration,
-                    'dateto' => $date,
+                    'dateto' => $date + $duration,
+                    'datefrom' => $date,
                     'calgroup' => $calgroup,
                 ]);
 

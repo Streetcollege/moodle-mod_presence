@@ -120,7 +120,7 @@ class calendar
     public function create_series_dates(int $from, int $to, array $days, int $period) : array {
         $dates = [];
         $periodcount = 0;
-        for ($t = $from; $t < $to; $t += 3600 * 24) {
+        for ($t = $from; $t <= $to + 3600 * 23; $t += 3600 * 24) {
             $weekday = date('N', $t) - 1;
             if ($days[$weekday]) {
                 $debug = date('D Y-m-d H:i:s', $t);
